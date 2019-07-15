@@ -20,7 +20,10 @@ install:
 # command to run tests
 script:
   # run tests
-  - python setup.py test
+  - python -m coverage run setup.py test
+
+  # show coverage stats
+  - python -m coverage report -m
 
   # run code formatting tests
   - if [[ $TRAVIS_PYTHON_VERSION != 3.5 ]]; then python -m black . --check; fi

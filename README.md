@@ -48,6 +48,6 @@ python setup.py test
 To check coverage, use the `coverage` command:
 
 ```sh
-coverage run --source=src setup.py test
+coverage run setup.py test
 coverage report -m
 ```
