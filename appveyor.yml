@@ -42,6 +42,7 @@ test_script:
 
   # show coverage stats
   - "py -%PYTHON_VERSION% -m coverage report -m"
+  - "py -%PYTHON_VERSION% -m coveralls"
 
   # run code formatting tests
   - "if NOT %PYTHON_VERSION% == 3.5 (py -%PYTHON_VERSION% -m  black . --check)"

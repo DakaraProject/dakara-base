@@ -24,6 +24,7 @@ script:
 
   # show coverage stats
   - python -m coverage report -m
+  - python -m coveralls
 
   # run code formatting tests
   - if [[ $TRAVIS_PYTHON_VERSION != 3.5 ]]; then python -m black . --check; fi
