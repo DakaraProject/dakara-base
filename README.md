@@ -1,5 +1,11 @@
 # Dakara Base
 
+<!-- Badges are displayed for the develop branch -->
+[![Travis CI Build Status](https://travis-ci.org/DakaraProject/dakara-base.svg?branch=develop)](https://travis-ci.org/DakaraProject/dakara-base)
+[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/50fay6bhsgxispcw/branch/develop?svg=true)](https://ci.appveyor.com/project/neraste/dakara-base/branch/develop)
+[![Coverage Status](https://coveralls.io/repos/github/DakaraProject/dakara-base/badge.svg?branch=develop)](https://coveralls.io/github/DakaraProject/dakara-base?branch=develop)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+
 This project is a collection of tools and helper modules for the Dakara Project.
 
 ## Modules available
