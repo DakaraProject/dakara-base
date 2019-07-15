@@ -38,10 +38,10 @@ install:
 # command to run tests
 test_script:
   # run tests
-  - "py -%PYTHON_VERSION% coverage run setup.py test"
+  - "py -%PYTHON_VERSION% -m coverage run setup.py test"
 
   # show coverage stats
-  - "py -%PYTHON_VERSION% coverage report -m"
+  - "py -%PYTHON_VERSION% -m coverage report -m"
 
   # run code formatting tests
   - "if NOT %PYTHON_VERSION% == 3.5 (py -%PYTHON_VERSION% -m  black . --check)"
