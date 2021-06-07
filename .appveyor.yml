@@ -28,6 +28,7 @@ for:
     cache:
       # enable cache for Python dependencies
       - "$HOME/.cache/pip"
+      - "$HOME/.cache/pypoetry/cache"
 
     init:
       # load virtual env
@@ -63,6 +64,7 @@ for:
     cache:
       # enable cache for Python dependencies
       - "%LOCALAPPDATA%\\pip\\Cache"
+      - "%LOCALAPPDATA%\\pypoetry\\Cache\\cache"
 
     init:
       # check current python version
