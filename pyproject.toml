@@ -2,10 +2,7 @@
 name = "dakarabase"
 version = "1.4.0-dev"
 description = "Collection of helper modules for the Dakara Project"
-authors = [
-        "Neraste <neraste.herr10@gmail.com>",
-        "Flore <flore.love@gmail.com>",
-]
+authors = ["Flore, Neraste <flore.love@gmail.com, neraste.herr10@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/DakaraProject/dakara-base"
