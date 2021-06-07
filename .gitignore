@@ -101,6 +101,3 @@ venv.bak/
 
 # local config
 /config.yaml
-
-# poetry
-poetry.lock
