@@ -28,6 +28,10 @@ dev_version_number=$2-dev
 version_date=$(date -I -u)
 version_year=$(date +%Y -u)
 
+# change version in pyproject file
+pyproject_file=pyproject.toml
+poetry version "$version_number"
+
 # change version and date in version file
 version_file=src/dakara_base/__init__.py
 cat <<EOF >$version_file
@@ -51,12 +55,15 @@ license_file=LICENSE
 sed -i -e "s/(c) [0-9]\{4\}/(c) $version_year/" $license_file
 
 # create commit and tag
-git add $version_file $changelog_file $appveyor_file $license_file
+git add $pyproject_file $version_file $changelog_file $appveyor_file $license_file
 git commit -m "Version $version_number" --no-verify
 git tag "$version_number"
 
 # say something
 echo "Version bumped to $version_number"
+
+# change dev version in pyproject file
+poetry version "$dev_version_number"
 
 # change dev version and date in version file
 cat <<EOF >$version_file
@@ -69,7 +76,7 @@ EOF
 sed -i "s/^version: .*-{build}$/version: $dev_version_number-{build}/" $appveyor_file
 
 # create commit
-git add $version_file $appveyor_file
+git add $pyproject_file $version_file $appveyor_file
 git commit -m "Dev version $dev_version_number" --no-verify
 
 # say something
