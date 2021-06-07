@@ -1,4 +1,4 @@
-"""Progress bar module
+"""Progress bar module.
 
 This module regroups utilities for managing a progress bar.
 
@@ -37,14 +37,14 @@ logger = logging.getLogger(__name__)
 
 
 class ShrinkableTextWidget(WidgetBase):
-    """Widget which size auto-shrinks with terminal width
+    """Widget which size auto-shrinks with terminal width.
 
     It contains a descriptive text using by default one quarter of the screen
     width, which can be truncated by the middle if it does not fit.
 
     Args:
-        text (str): text to display on screen.
-        ratio (float): ratio of screen width to use for text.
+        text (str): Text to display on screen.
+        ratio (float): Ratio of screen width to use for text.
     """
 
     def __init__(self, text, ratio=0.25):
@@ -66,17 +66,17 @@ class ShrinkableTextWidget(WidgetBase):
 
 
 def progress_bar(iterator, *args, text=None, **kwargs):
-    """Generator that gives the default un-muted progress bar for the project
+    """Generator that gives the default un-muted progress bar for the project.
 
     It prints an optionnal shrinkable text (if a text is provided), a
     percentage progress, a progress bar and an adaptative ETA.
 
     Args:
-        iterator (iterator): iterator of items to use the bar with.
-        text (str): text to display describing the current operation.
+        iterator (iterator): Iterator of items to use the bar with.
+        text (str): Text to display describing the current operation.
 
     Returns:
-        generator object: item handled by the progress bar.
+        generator object: Item handled by the progress bar.
     """
     widgets = []
 
@@ -104,16 +104,16 @@ def progress_bar(iterator, *args, text=None, **kwargs):
 
 
 def null_bar(iterator, *args, text=None, **kwargs):
-    """Generator that gives the defaylt muted progress bar for the project
+    """Generator that gives the defaylt muted progress bar for the project.
 
     It only logs the optionnal text.
 
     Args:
-        iterator (iterator): iterator of items to use the bar with.
-        text (str): text to log describing the current operation.
+        iterator (iterator): Iterator of items to use the bar with.
+        text (str): Text to log describing the current operation.
 
     Returns:
-        generator object: item handled by the progress bar.
+        generator object: Item handled by the progress bar.
     """
     # log text immediately
     if text:

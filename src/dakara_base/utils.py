@@ -1,4 +1,4 @@
-"""Utils helper module
+"""Utils helper module.
 
 This module regroups diverse helper functions.
 
@@ -32,17 +32,17 @@ from dakara_base.exceptions import DakaraError
 
 
 def truncate_message(message, limit=100):
-    """Display the first characters of a message
+    """Display the first characters of a message.
 
     The message is truncated using ellipsis and stripped to avoid blank spaces
     before the ellipsis.
 
     Args:
-        message (str): message to truncate.
-        limit (int): maximum size of the message.
+        message (str): Message to truncate.
+        limit (int): Maximum size of the message.
 
     Returns:
-        str: truncated message.
+        str: Truncated message.
     """
     assert limit - 3 > 0, "Limit too short"
 
@@ -63,7 +63,7 @@ def create_url(
     scheme_ssl="https",
     **kwargs
 ):
-    """Create an URL from arguments
+    """Create an URL from arguments.
 
     If `url` is given, the function returns it with `path` appended. If no
     `host` is given, `host` and `port` are extracted from `address` with the
@@ -72,21 +72,21 @@ def create_url(
     the URL.
 
     Args:
-        url (str): direct URL.
-        address (str): host, or host and port.
-        host (str): host.
-        port (str): port.
-        path (str): path appended to the URL.
-        ssl (bool): use a secured URL or not.
-        scheme_no_ssl (str): scheme used if `ssl` is false.
-        scheme_ssl (str): scheme used if `ssl` is true.
+        url (str): Direct URL.
+        address (str): Host, or host and port.
+        host (str): Host.
+        port (str): Port.
+        path (str): Path appended to the URL.
+        ssl (bool): Use a secured URL or not.
+        scheme_no_ssl (str): Scheme used if `ssl` is false.
+        scheme_ssl (str): Scheme used if `ssl` is true.
         Any other argument is ignored.
 
     Returns:
         str: URL string.
 
     Raises:
-        URLParameterError: if `scheme` or `host` cannot be defined, or if the
+        URLParameterError: If `scheme` or `host` cannot be defined, or if the
             parameters are invalid to `furl.furl`.
     """
     # setting URL directly
@@ -128,5 +128,4 @@ def create_url(
 
 
 class URLParameterError(DakaraError, ValueError):
-    """Error raised when server parameters are unproperly set
-    """
+    """Error raised when server parameters are unproperly set."""

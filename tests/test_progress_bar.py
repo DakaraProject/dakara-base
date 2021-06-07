@@ -11,12 +11,10 @@ from dakara_base import progress_bar
 
 
 class ShrinkablaTextWidgetTestCase(TestCase):
-    """Test the widget for shrinkable text
-    """
+    """Test the widget for shrinkable text."""
 
     def test_no_shrink(self):
-        """Test a not shrinked case
-        """
+        """Test a not shrinked case."""
         # prepare mock objects
         progress = MagicMock()
         progress.term_width = 80
@@ -31,8 +29,7 @@ class ShrinkablaTextWidgetTestCase(TestCase):
         self.assertEqual(result, "some text here      ")
 
     def test_shrink(self):
-        """Test a not shrinked case
-        """
+        """Test a not shrinked case."""
         # prepare mock objects
         progress = MagicMock()
         progress.term_width = 40
@@ -47,8 +44,7 @@ class ShrinkablaTextWidgetTestCase(TestCase):
         self.assertEqual(result, "som...here")
 
     def test_too_short(self):
-        """Test a too short case
-        """
+        """Test a too short case."""
         # create the widget
         with self.assertRaises(AssertionError) as error:
             progress_bar.ShrinkableTextWidget("some")
@@ -58,12 +54,11 @@ class ShrinkablaTextWidgetTestCase(TestCase):
 
 
 class ProgressBarTestCase(TestCase):
-    """Test the default progress bar
-    """
+    """Test the default progress bar."""
 
     @staticmethod
     def get_lines(file):
-        """Get a neat list of printed lines from a dummy file descriptor.
+        """Get a neat list of printed lines from a dummy file descriptor..
 
         Args:
             file (io.StringIO): Dummy file descriptor that get the output of
@@ -77,8 +72,7 @@ class ProgressBarTestCase(TestCase):
         return [line for line in lines if line.strip()]
 
     def test_text(self):
-        """Test a bar with text
-        """
+        """Test a bar with text."""
         # call the bar
         with StringIO() as file:
             for _ in progress_bar.progress_bar(
@@ -100,8 +94,7 @@ class ProgressBarTestCase(TestCase):
         )
 
     def test_no_text(self):
-        """Test a bar without text
-        """
+        """Test a bar without text."""
         # call the bar
         with StringIO() as file:
             for _ in progress_bar.progress_bar(range(1), fd=file, term_width=65):
@@ -121,8 +114,7 @@ class ProgressBarTestCase(TestCase):
         )
 
     def test_stderr_on_no_exception(self):
-        """Test to check stderr is not captured if no exceptions occur
-        """
+        """Test to check stderr is not captured if no exceptions occur."""
         stderr = StringIO()
         initial_stderr = sys.stderr
 
@@ -156,7 +148,7 @@ class ProgressBarTestCase(TestCase):
         self.assertEqual(value, "error")
 
     def test_no_stderr_on_exception(self):
-        """Test to check stderr does not remain captured after an exception
+        """Test to check stderr does not remain captured after an exception.
 
         When leaving a progress bar by an exception, it does not call
         `progressbar.streams.stop_capturing` and the stderr is allways
@@ -204,8 +196,7 @@ class ProgressBarTestCase(TestCase):
 
 @contextmanager
 def wrap_stderr_progressbar():
-    """Temporary wrap stderr with progressbar tools
-    """
+    """Temporary wrap stderr with progressbar tools."""
     try:
         progressbar.streams.wrap_stderr()
         yield None
@@ -215,16 +206,14 @@ def wrap_stderr_progressbar():
 
 
 class NullBarTestCase(TestCase):
-    """Test the null progress bar
-    """
+    """Test the null progress bar."""
 
     def setUp(self):
         # create logger similar to the one of the tested module
         self.logger = logging.getLogger("dakara_base.progress_bar")
 
     def test_text(self):
-        """Test a null bar with text
-        """
+        """Test a null bar with text."""
         # call the bar
         with self.assertLogs("dakara_base.progress_bar") as logger:
             self.logger.info("start bar")
@@ -244,8 +233,7 @@ class NullBarTestCase(TestCase):
         )
 
     def test_no_text(self):
-        """Test a null bar without text
-        """
+        """Test a null bar without text."""
         # call the bar
         with self.assertLogs("dakara_base.progress_bar") as logger:
             self.logger.info("start bar")

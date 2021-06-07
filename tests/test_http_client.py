@@ -16,8 +16,7 @@ from dakara_base.http_client import (
 
 
 class AuthenticatedTestCase(TestCase):
-    """Test the `authenticated` decorator
-    """
+    """Test the `authenticated` decorator."""
 
     class Authenticated:
         def __init__(self):
@@ -28,8 +27,7 @@ class AuthenticatedTestCase(TestCase):
             pass
 
     def test_authenticated_sucessful(self):
-        """Test the authenticated decorator when token is set
-        """
+        """Test the authenticated decorator when token is set."""
         instance = self.Authenticated()
 
         # set the token
@@ -39,8 +37,7 @@ class AuthenticatedTestCase(TestCase):
         instance.dummy()
 
     def test_authenticated_error(self):
-        """Test the authenticated decorator when token is not set
-        """
+        """Test the authenticated decorator when token is not set."""
         instance = self.Authenticated()
 
         # call a protected method
@@ -49,8 +46,7 @@ class AuthenticatedTestCase(TestCase):
 
 
 class HTTPClientTestCase(TestCase):
-    """Test the HTTP connection with a server
-    """
+    """Test the HTTP connection with a server."""
 
     def setUp(self):
         # create a token
@@ -79,18 +75,15 @@ class HTTPClientTestCase(TestCase):
         )
 
     def set_token(self):
-        """Set the token to the test client
-        """
+        """Set the token to the test client."""
         self.client.token = self.token
 
     def set_mute(self):
-        """Set the client to mute communication errors when sending requests
-        """
+        """Set the client to mute communication errors when sending requests."""
         self.client.mute_raise = True
 
     def test_init(self):
-        """Test to create object
-        """
+        """Test to create object."""
         # use the already created client object
         self.assertEqual(self.client.server_url, self.url_api)
         self.assertEqual(self.client.login, self.login)
@@ -98,8 +91,7 @@ class HTTPClientTestCase(TestCase):
         self.assertIsNone(self.client.token)
 
     def test_init_missing_key(self):
-        """Test to create object with missing mandatory key
-        """
+        """Test to create object with missing mandatory key."""
         # try to create a client from invalid config
         with self.assertRaises(ParameterError) as error:
             HTTPClient({"url": self.url}, endpoint_prefix="api/")
@@ -111,8 +103,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch("dakara_base.http_client.requests.post", autospec=True)
     def test_send_request_raw_successful(self, mocked_post):
-        """Test to send a raw request with the generic method
-        """
+        """Test to send a raw request with the generic method."""
         # call the method
         with self.assertLogs("dakara_base.http_client", "DEBUG") as logger:
             self.client.send_request_raw(
@@ -137,8 +128,7 @@ class HTTPClientTestCase(TestCase):
         )
 
     def test_send_request_raw_error_method(self):
-        """Test that a wrong method name fails for a generic raw request
-        """
+        """Test that a wrong method name fails for a generic raw request."""
         # call the method
         with self.assertRaises(MethodError):
             self.client.send_request_raw(
@@ -150,8 +140,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch("dakara_base.http_client.requests.post", autospec=True)
     def test_send_request_raw_error_request(self, mocked_post):
-        """Test to send a raw request when there is a communication error
-        """
+        """Test to send a raw request when there is a communication error."""
         # mock the response of the server
         mocked_post.side_effect = RequestException("error")
 
@@ -182,8 +171,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch("dakara_base.http_client.requests.post", autospec=True)
     def test_send_request_raw_error_response(self, mocked_post):
-        """Test to send a raw request when the response is invalid
-        """
+        """Test to send a raw request when the response is invalid."""
         # mock the response of the server
         mocked_post.return_value.ok = False
 
@@ -194,8 +182,8 @@ class HTTPClientTestCase(TestCase):
 
     @patch("dakara_base.http_client.requests.post", autospec=True)
     def test_send_request_raw_error_response_custom(self, mocked_post):
-        """Test to send a raw request when the response is invalid and a error function given
-        """
+        """Test to send a raw request when the response is invalid and an
+        error function given."""
         # mock the response of the server
         mocked_post.return_value.ok = False
 
@@ -215,8 +203,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch.object(HTTPClient, "send_request_raw", autospec=True)
     def test_send_request_successful(self, mocked_send_request_raw):
-        """Test to send a successful request
-        """
+        """Test to send a successful request."""
         # set the token
         self.set_token()
 
@@ -234,8 +221,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch.object(HTTPClient, "send_request_raw", autospec=True)
     def test_send_request_error_raised(self, mocked_send_request_raw):
-        """Test to send an unsuccessful request which is not muted
-        """
+        """Test to send an unsuccessful request which is not muted."""
         # set the token
         self.set_token()
 
@@ -248,8 +234,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch.object(HTTPClient, "send_request_raw", autospec=True)
     def test_send_request_error_muted(self, mocked_send_request_raw):
-        """Test to send an unsuccessful request which is muted
-        """
+        """Test to send an unsuccessful request which is muted."""
         # set the token
         self.set_token()
         self.set_mute()
@@ -271,8 +256,7 @@ class HTTPClientTestCase(TestCase):
     def test_methods(
         self, mocked_get, mocked_post, mocked_put, mocked_patch, mocked_delete
     ):
-        """Test the different HTTP methods
-        """
+        """Test the different HTTP methods."""
         # set the token
         self.set_token()
 
@@ -302,8 +286,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch("dakara_base.http_client.requests.post", autospec=True)
     def test_authenticate_successful(self, mocked_post):
-        """Test a successful authentication with the server
-        """
+        """Test a successful authentication with the server."""
         # mock the response of the server
         mocked_post.return_value.ok = True
         mocked_post.return_value.json.return_value = {"token": self.token}
@@ -338,8 +321,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch("dakara_base.http_client.requests.post", autospec=True)
     def test_authenticate_error_network(self, mocked_post):
-        """Test a network error when authenticating
-        """
+        """Test a network error when authenticating."""
         # mock the response of the server
         mocked_post.side_effect = RequestException()
 
@@ -350,8 +332,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch("dakara_base.http_client.requests.post", autospec=True)
     def test_authenticate_error_authentication(self, mocked_post):
-        """Test an authentication error when authenticating
-        """
+        """Test an authentication error when authenticating."""
         # mock the response of the server
         mocked_post.return_value.ok = False
         mocked_post.return_value.status_code = 400
@@ -363,8 +344,7 @@ class HTTPClientTestCase(TestCase):
 
     @patch("dakara_base.http_client.requests.post", autospec=True)
     def test_authenticate_error_other(self, mocked_post):
-        """Test a server error when authenticating
-        """
+        """Test a server error when authenticating."""
         # mock the response of the server
         mocked_post.return_value.ok = False
         mocked_post.return_value.status_code = 999
@@ -376,8 +356,7 @@ class HTTPClientTestCase(TestCase):
                 self.client.authenticate()
 
     def test_get_token_header(self):
-        """Test the helper to get token header
-        """
+        """Test the helper to get token header."""
         # set the token
         self.set_token()
 
@@ -388,8 +367,7 @@ class HTTPClientTestCase(TestCase):
         self.assertEqual(result, {"Authorization": "Token " + self.token})
 
     def test_get_json_from_response(self):
-        """Test the helper to get data from existing response
-        """
+        """Test the helper to get data from existing response."""
         # create the mock
         response = MagicMock()
 
@@ -403,8 +381,7 @@ class HTTPClientTestCase(TestCase):
         response.json.assert_called_with()
 
     def test_get_json_from_response_none(self):
-        """Test the helper to get data from no response
-        """
+        """Test the helper to get data from no response."""
         # call the method
         result = HTTPClient.get_json_from_response(None)
 
@@ -412,8 +389,7 @@ class HTTPClientTestCase(TestCase):
         self.assertIsNone(result)
 
     def test_get_json_from_response_no_content(self):
-        """Test the helper to get data from a response with no content
-        """
+        """Test the helper to get data from a response with no content."""
         # create a response with no content
         response = MagicMock()
         response.text = ""

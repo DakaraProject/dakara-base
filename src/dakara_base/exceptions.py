@@ -1,4 +1,4 @@
-"""Exceptions helper module
+"""Exceptions helper module.
 
 This module defines the base exception class for any project using this
 library. All exception classes should inherit from `DakaraError`:
@@ -42,5 +42,4 @@ interruption of the program:
 
 
 class DakaraError(Exception):
-    """Basic exception class for the project
-    """
+    """Basic exception class for the project."""

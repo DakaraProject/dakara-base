@@ -24,12 +24,10 @@ from dakara_base.config import (
 
 
 class LoadConfigTestCase(TestCase):
-    """Test the `load_config` function
-    """
+    """Test the `load_config` function."""
 
     def test_success(self):
-        """Test to load a config file
-        """
+        """Test to load a config file."""
         # call the method
         with self.assertLogs("dakara_base.config", "DEBUG") as logger:
             with path("tests.resources", "config.yaml") as file:
@@ -45,8 +43,7 @@ class LoadConfigTestCase(TestCase):
         )
 
     def test_success_debug(self):
-        """Test to load the config file with debug mode enabled
-        """
+        """Test to load the config file with debug mode enabled."""
         # call the method
         with self.assertLogs("dakara_base.config", "DEBUG"):
             with path("tests.resources", "config.yaml") as file:
@@ -56,8 +53,7 @@ class LoadConfigTestCase(TestCase):
         self.assertDictEqual(config, {"key": {"subkey": "value"}, "loglevel": "DEBUG"})
 
     def test_fail_not_found(self):
-        """Test to load a not found config file
-        """
+        """Test to load a not found config file."""
         # call the method
         with self.assertLogs("dakara_base.config", "DEBUG"):
             with self.assertRaisesRegex(ConfigNotFoundError, "No config file found"):
@@ -65,8 +61,7 @@ class LoadConfigTestCase(TestCase):
 
     @patch("dakara_base.config.yaml.load", autospec=True)
     def test_load_config_fail_parser_error(self, mocked_load):
-        """Test to load an invalid config file
-        """
+        """Test to load an invalid config file."""
         # mock the call to yaml
         mocked_load.side_effect = ParserError("parser error")
 
@@ -79,8 +74,7 @@ class LoadConfigTestCase(TestCase):
                     load_config(Path(file), False)
 
     def test_load_config_fail_missing_keys(self):
-        """Test to load a config file without required keys
-        """
+        """Test to load a config file without required keys."""
         # call the method
         with self.assertLogs("dakara_base.config", "DEBUG"):
             with path("tests.resources", "config.yaml") as file:
@@ -93,14 +87,12 @@ class LoadConfigTestCase(TestCase):
 @patch("dakara_base.config.LOG_FORMAT", "my format")
 @patch("dakara_base.config.LOG_LEVEL", "my level")
 class CreateLoggerTestCase(TestCase):
-    """Test the `create_logger` function
-    """
+    """Test the `create_logger` function."""
 
     @patch("dakara_base.progress_bar.progressbar.streams.wrap_stderr")
     @patch("dakara_base.config.coloredlogs.install", autospec=True)
     def test_normal(self, mocked_install, mocked_wrap_stderr):
-        """Test to call the method normally
-        """
+        """Test to call the method normally."""
         # call the method
         create_logger()
 
@@ -111,8 +103,7 @@ class CreateLoggerTestCase(TestCase):
     @patch("dakara_base.progress_bar.progressbar.streams.wrap_stderr")
     @patch("dakara_base.config.coloredlogs.install", autospec=True)
     def test_wrap(self, mocked_install, mocked_wrap_stderr):
-        """Test to call the method and request to wrap stderr
-        """
+        """Test to call the method and request to wrap stderr."""
         # call the method
         create_logger(wrap=True)
 
@@ -123,8 +114,7 @@ class CreateLoggerTestCase(TestCase):
     @patch("dakara_base.progress_bar.progressbar.streams.wrap_stderr")
     @patch("dakara_base.config.coloredlogs.install", autospec=True)
     def test_custom(self, mocked_install, mocked_wrap_stderr):
-        """Test to call the method with custom format and level
-        """
+        """Test to call the method with custom format and level."""
         # call the method
         create_logger(
             custom_log_format="my custom format", custom_log_level="my custom level"
@@ -138,13 +128,11 @@ class CreateLoggerTestCase(TestCase):
 
 
 class SetLoglevelTestCase(TestCase):
-    """Test the `set_loglevel` function
-    """
+    """Test the `set_loglevel` function."""
 
     @patch("dakara_base.config.coloredlogs.set_level", autospec=True)
     def test_configure_logger(self, mocked_set_level):
-        """Test to configure the logger
-        """
+        """Test to configure the logger."""
         # call the method
         set_loglevel({"loglevel": "DEBUG"})
 
@@ -153,8 +141,7 @@ class SetLoglevelTestCase(TestCase):
 
     @patch("dakara_base.config.coloredlogs.set_level", autospec=True)
     def test_configure_logger_no_level(self, mocked_set_level):
-        """Test to configure the logger with no log level
-        """
+        """Test to configure the logger with no log level."""
         # call the method
         set_loglevel({})
 
@@ -163,29 +150,25 @@ class SetLoglevelTestCase(TestCase):
 
 
 class GetConfigDirectoryTestCase(TestCase):
-    """Test the config directory getter
-    """
+    """Test the config directory getter."""
 
     @patch("sys.platform", "linux")
     def test_linux(self):
-        """Test to get config directory for Linux
-        """
+        """Test to get config directory for Linux."""
         directory = get_config_directory()
 
         self.assertEqual(directory, Path("~") / ".config" / "dakara")
 
     @patch("sys.platform", "win32")
     def test_windows(self):
-        """Test to get config directory for Windows
-        """
+        """Test to get config directory for Windows."""
         directory = get_config_directory()
 
         self.assertEqual(directory, Path("$APPDATA") / "Dakara")
 
     @patch("sys.platform", "unknown")
     def test_unknown(self):
-        """Test to get config directory for unknown OS
-        """
+        """Test to get config directory for unknown OS."""
         with self.assertRaisesRegex(
             NotImplementedError,
             r"This operating system \(unknown\) is not currently supported",
@@ -200,10 +183,11 @@ class GetConfigDirectoryTestCase(TestCase):
     "dakara_base.config.get_config_file",
     return_value=Path("path") / "to" / "directory" / "config.yaml",
 )
-@patch("dakara_base.config.path",)
+@patch(
+    "dakara_base.config.path",
+)
 class CreateConfigFileTestCase(TestCase):
-    """Test the config file creator
-    """
+    """Test the config file creator."""
 
     def test_create_empty(
         self,
@@ -213,8 +197,7 @@ class CreateConfigFileTestCase(TestCase):
         mocked_exists,
         mocked_copyfile,
     ):
-        """Test to create the config file in an empty directory
-        """
+        """Test create the config file in an empty directory."""
         # setup mocks
         mocked_exists.return_value = False
 
@@ -251,8 +234,7 @@ class CreateConfigFileTestCase(TestCase):
         mocked_exists,
         mocked_copyfile,
     ):
-        """Test to create the config file in a non empty directory
-        """
+        """Test create the config file in a non empty directory."""
         # setup mocks
         mocked_exists.return_value = True
         mocked_input.return_value = "no"
@@ -278,8 +260,7 @@ class CreateConfigFileTestCase(TestCase):
         mocked_exists,
         mocked_copyfile,
     ):
-        """Test to create the config file in a non empty directory with invalid input
-        """
+        """Test create the config file in a non empty directory with invalid input."""
         # setup mocks
         mocked_exists.return_value = True
         mocked_input.return_value = ""
@@ -300,8 +281,7 @@ class CreateConfigFileTestCase(TestCase):
         mocked_exists,
         mocked_copyfile,
     ):
-        """Test to create the config file in a non empty directory with force overwrite
-        """
+        """Test create the config file in a non empty directory with force overwrite."""
         # call the function
         create_config_file("module.resources", "config.yaml", force=True)
 
@@ -318,11 +298,9 @@ class CreateConfigFileTestCase(TestCase):
     return_value=Path("path") / "to" / "directory",
 )
 class GetConfigFileTestCase(TestCase):
-    """Test the config file getter
-    """
+    """Test the config file getter."""
 
     def test_get(self, mocked_get_config_directory):
-        """Test to get config file
-        """
+        """Test to get config file."""
         result = get_config_file("config.yaml")
         self.assertEqual(result, Path("path") / "to" / "directory" / "config.yaml")

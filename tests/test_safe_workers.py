@@ -21,14 +21,13 @@ from dakara_base.safe_workers import (
 
 
 class MyError(Exception):
-    """Dummy error class
-    """
+    """Dummy error class."""
 
     pass
 
 
 class BaseTestCase(TestCase):
-    """Generic test case
+    """Generic test case.
 
     It includes some dummy functions a new assertion method.
     """
@@ -39,21 +38,19 @@ class BaseTestCase(TestCase):
         self.errors = Queue()
 
     def function_safe(self):
-        """Function that does not raise any error
-        """
+        """Function that does not raise any error."""
         return
 
     def function_error(self):
-        """Function that raises a MyError
-        """
+        """Function that raises a MyError."""
         raise MyError("test error")
 
     @contextmanager
     def assertNotRaises(self, ExceptionClass):
-        """Assert that the provided exception does not raise
+        """Assert that the provided exception does not raise.
 
         Args:
-            ExceptionClass (class): class of the exception.
+            ExceptionClass (class): Class of the exception.
         """
         try:
             yield None
@@ -63,12 +60,10 @@ class BaseTestCase(TestCase):
 
 
 class SafeTestCase(BaseTestCase):
-    """Test the `safe` decorator
-    """
+    """Test the `safe` decorator."""
 
     def create_classes(self):
-        """Create dummy classes
-        """
+        """Create dummy classes."""
 
         class Base:
             @safe
@@ -91,7 +86,7 @@ class SafeTestCase(BaseTestCase):
         return Thread, Worker, Other
 
     def test_worker_function_safe(self):
-        """Test a safe function of a worker
+        """Test a safe function of a worker.
 
         Test that a non-error function does not trigger any error, does not set
         the stop event and does not put an error in the error queue.
@@ -112,7 +107,7 @@ class SafeTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
 
     def test_worker_function_error(self):
-        """Test an error function of a worker
+        """Test an error function of a worker.
 
         Test that an error function does not trigger any error, sets the stop
         event and puts a MyError in the error queue.
@@ -136,7 +131,7 @@ class SafeTestCase(BaseTestCase):
         self.assertIsInstance(error, MyError)
 
     def test_thread(self):
-        """Test a thread
+        """Test a thread.
 
         Test that a non-error function does not trigger any error, does not set
         the stop event and does not put an error in the error queue.
@@ -157,7 +152,7 @@ class SafeTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
 
     def test_other(self):
-        """Test an other class
+        """Test an other class.
 
         Test that the decorator raises an error, as the class is not supported.
         """
@@ -179,16 +174,14 @@ class SafeTestCase(BaseTestCase):
 
 
 class SafeThreadTestCase(BaseTestCase):
-    """Test the SafeThread class
-    """
+    """Test the SafeThread class."""
 
     def create_controlled_thread(self, target):
-        """Helper to create a safe thread for a target function
-        """
+        """Helper to create a safe thread for a target function."""
         return SafeThread(self.stop, self.errors, target=target)
 
     def test_function_safe(self):
-        """Test a safe function
+        """Test a safe function.
 
         Test that a non-error function run as a thread does not trigger any
         error, does not set the stop event and does not put an error in the
@@ -210,7 +203,7 @@ class SafeThreadTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
 
     def test_function_error(self):
-        """Test an error function
+        """Test an error function.
 
         Test that an error function run as a thread does not trigger any error,
         sets the stop event and puts a MyError in the error queue.
@@ -235,11 +228,10 @@ class SafeThreadTestCase(BaseTestCase):
 
 
 class SafeTimerTestCase(SafeThreadTestCase):
-    """Test the SafeTimer class
-    """
+    """Test the SafeTimer class."""
 
     def create_controlled_thread(self, target):
-        """Helper to create a safe timer thread for a target function
+        """Helper to create a safe timer thread for a target function.
 
         The delay is non null (0.5 s).
         """
@@ -247,11 +239,10 @@ class SafeTimerTestCase(SafeThreadTestCase):
 
 
 class WorkerTestCase(BaseTestCase):
-    """Test the Worker class
-    """
+    """Test the Worker class."""
 
     def test_run_safe(self):
-        """Test a safe run
+        """Test a safe run.
 
         Test that a worker used with no error does not produce any error,
         finishes with a triggered stop event and an empty error queue.
@@ -269,7 +260,7 @@ class WorkerTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
 
     def test_run_error(self):
-        """Test a run with error
+        """Test a run with error.
 
         Test that a worker used with error does produce an error, finishes
         with a triggered stop event and an empty error queue.
@@ -290,7 +281,7 @@ class WorkerTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
 
     def test_run_thread_safe(self):
-        """Test a run with a safe thread
+        """Test a run with a safe thread.
 
         Test that a worker used with a non-error thread does not produce any
         error, finishes with a triggered stop event and an empty error queue.
@@ -310,7 +301,7 @@ class WorkerTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
 
     def test_run_thread_error(self):
-        """Test a run with a thread with error
+        """Test a run with a thread with error.
 
         Test that a worker used with a thread with an error does not produce
         any error, finishes with a triggered stop event and a non-empty error
@@ -335,31 +326,26 @@ class WorkerTestCase(BaseTestCase):
 
 
 class WorkerSafeTimerTestCase(BaseTestCase):
-    """Test the WorkerSafeTimer class
-    """
+    """Test the WorkerSafeTimer class."""
 
     class WorkerSafeTimerToTest(WorkerSafeTimer):
-        """Dummy worker class
-        """
+        """Dummy worker class."""
 
         def function_already_dead(self):
-            """Function that ends immediately
-            """
+            """Function that ends immediately."""
             return
 
         def function_to_cancel(self):
-            """Function that calls itself in loop every second
-            """
+            """Function that calls itself in loop every second."""
             self.timer = Timer(1, self.function_to_cancel)
             self.timer.start()
 
         def function_to_join(self):
-            """Function that waits one second
-            """
+            """Function that waits one second."""
             sleep(1)
 
     def test_run_timer_dead(self):
-        """Test to end a worker when its timer is dead
+        """Test to end a worker when its timer is dead.
 
         Test that a worker worker stopped with a dead timer finishes with a
         triggered stop event, an empty error queue and a still dead timer.
@@ -380,7 +366,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
         self.assertFalse(worker.timer.is_alive())
 
     def test_run_timer_cancelled(self):
-        """Test to end a deamon when its timer is waiting
+        """Test to end a deamon when its timer is waiting.
 
         Test that a worker worker stopped with a waiting timer finishes with a
         triggered stop event, an empty error queue and a dead timer.
@@ -402,7 +388,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
         self.assertTrue(worker.timer.finished.is_set())
 
     def test_run_timer_joined(self):
-        """Test to end a deamon when its timer is running
+        """Test to end a deamon when its timer is running.
 
         Test that a worker worker stopped with a running timer finishes with a
         triggered stop event, an empty error queue and a dead timer.
@@ -423,7 +409,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
         self.assertFalse(worker.timer.is_alive())
 
     def test_unredifined_timer(self):
-        """Test the timer must be redefined
+        """Test the timer must be redefined.
 
         Test that a worker worker with its default timer does not generate an
         error, but finishes with a triggered stop event and an non-empty error
@@ -446,25 +432,21 @@ class WorkerSafeTimerTestCase(BaseTestCase):
 
 
 class WorkerSafeThreadTestCase(BaseTestCase):
-    """Test the WorkerSafeThread class
-    """
+    """Test the WorkerSafeThread class."""
 
     class WorkerSafeThreadToTest(WorkerSafeThread):
-        """Dummy worker class
-        """
+        """Dummy worker class."""
 
         def function_already_dead(self):
-            """Function that ends immediately
-            """
+            """Function that ends immediately."""
             return
 
         def function_to_join(self):
-            """Function that waits one second
-            """
+            """Function that waits one second."""
             sleep(1)
 
     def test_run_thread_dead(self):
-        """Test to end a worker when its thread is dead
+        """Test to end a worker when its thread is dead.
 
         Test that a worker worker stopped with a dead thread finishes with a
         triggered stop event, an empty error queue and a still dead thread.
@@ -485,7 +467,7 @@ class WorkerSafeThreadTestCase(BaseTestCase):
         self.assertFalse(worker.thread.is_alive())
 
     def test_run_thread_joined(self):
-        """Test to end a deamon when its thread is running
+        """Test to end a deamon when its thread is running.
 
         Test that a worker worker stopped with a running thread finishes with a
         triggered stop event, an empty error queue and a dead thread.
@@ -506,7 +488,7 @@ class WorkerSafeThreadTestCase(BaseTestCase):
         self.assertFalse(worker.thread.is_alive())
 
     def test_unredifined_thread(self):
-        """Test the thread must be redefined
+        """Test the thread must be redefined.
 
         Test that a worker worker with its default thread does not generate an
         error, but finishes with a triggered stop event and an non-empty error
@@ -529,15 +511,14 @@ class WorkerSafeThreadTestCase(BaseTestCase):
 
 
 class RunnerTestCase(BaseTestCase):
-    """Test the Runner class
+    """Test the Runner class.
 
     The class to test should leave because of a Ctrl+C, or because of an
     internal eror.
     """
 
     class WorkerNormal(Worker):
-        """Dummy worker class
-        """
+        """Dummy worker class."""
 
         def init_worker(self):
             self.thread = self.create_thread(target=self.test)
@@ -546,8 +527,7 @@ class RunnerTestCase(BaseTestCase):
             pass
 
     class WorkerError(Worker):
-        """Dummy worker class that will fail
-        """
+        """Dummy worker class that will fail."""
 
         def init_worker(self):
             self.thread = self.create_thread(target=self.test)
@@ -560,7 +540,7 @@ class RunnerTestCase(BaseTestCase):
         self.runner = Runner()
 
     def test_run_safe_interrupt(self):
-        """Test a run with an interruption by KeyboardInterrupt exception
+        """Test a run with an interruption by KeyboardInterrupt exception.
 
         The run should end with a set stop event and an empty errors queue.
         """
@@ -583,7 +563,7 @@ class RunnerTestCase(BaseTestCase):
         self.runner.stop.wait.assert_called_once()
 
     def test_run_safe_error(self):
-        """Test a run with an error
+        """Test a run with an error.
 
         The run should raise a MyError, end with a set stop event and an
         empty error queue.

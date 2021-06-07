@@ -27,7 +27,7 @@ packages = [
 "Bug tracker" = "https://github.com/DakaraProject/dakara-base/issues"
 
 [tool.poetry.dependencies]
-python = "^3.6.1"
+python = "^3.6.2"
 coloredlogs = "^10.0"
 furl = "^2.0"
 importlib-resources = "^5.0.0"
@@ -38,7 +38,7 @@ requests = "^2.22"
 websocket-client = "^0.56"
 
 [tool.poetry.dev-dependencies]
-black = "19.10b0"
+black = "^21.5b2"
 codecov = "^2.1.11"
 flake8 = "^3.9.2"
 pytest = "^6.2.4"
