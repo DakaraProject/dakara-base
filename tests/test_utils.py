@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import patch
 
-from dakara_base.utils import truncate_message, create_url, URLParameterError
+from dakara_base.utils import URLParameterError, create_url, truncate_message
 
 
 class TruncateMessageTestCase(TestCase):

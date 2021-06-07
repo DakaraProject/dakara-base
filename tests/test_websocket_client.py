@@ -8,11 +8,11 @@ from websocket import WebSocketBadStatusException, WebSocketConnectionClosedExce
 
 from dakara_base.websocket_client import (
     AuthenticationError,
-    connected,
     NetworkError,
     NotConnectedError,
     ParameterError,
     WebSocketClient,
+    connected,
 )
 
 

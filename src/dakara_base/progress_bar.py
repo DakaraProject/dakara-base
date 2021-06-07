@@ -33,7 +33,6 @@ import logging
 import progressbar
 from progressbar.widgets import WidgetBase
 
-
 logger = logging.getLogger(__name__)
 
 

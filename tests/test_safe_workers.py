@@ -9,7 +9,6 @@ from dakara_base.safe_workers import (
     BaseSafeThread,
     BaseWorker,
     Runner,
-    safe,
     SafeThread,
     SafeTimer,
     UnredefinedThreadError,
@@ -17,6 +16,7 @@ from dakara_base.safe_workers import (
     Worker,
     WorkerSafeThread,
     WorkerSafeTimer,
+    safe,
 )
 
 

@@ -40,9 +40,8 @@ from websocket import (
 )
 
 from dakara_base.exceptions import DakaraError
-from dakara_base.safe_workers import safe, WorkerSafeTimer
-from dakara_base.utils import truncate_message, create_url
-
+from dakara_base.safe_workers import WorkerSafeTimer, safe
+from dakara_base.utils import create_url, truncate_message
 
 logger = logging.getLogger(__name__)
 

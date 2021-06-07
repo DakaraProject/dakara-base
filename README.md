@@ -35,7 +35,7 @@ This package is managed with [Poetry](https://python-poetry.org/):
 pip install poetry
 ```
 
-### Install dependencies
+### Dependencies
 
 Install the dependencies with:
 
@@ -45,12 +45,20 @@ poetry install
 
 This installs the normal dependencies of the package plus the dependencies for tests.
 
-### Run tests
+### Tests
 
 Tests are run by [Pytest](https://docs.pytest.org/en/stable/) and are simply run by:
 
 ```sh
 poetry run pytest
+```
+
+### Imports
+
+Imports are sorted by [isort](https://pycqa.github.io/isort/) with the command:
+
+```sh
+poetry run isort .
 ```
 
 ### Code style

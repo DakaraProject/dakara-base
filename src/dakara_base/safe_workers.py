@@ -30,13 +30,12 @@ True
 """
 
 
-from queue import Empty, Queue
-from threading import Event, Thread, Timer
 import logging
 import sys
+from queue import Empty, Queue
+from threading import Event, Thread, Timer
 
 from dakara_base.exceptions import DakaraError
-
 
 logger = logging.getLogger(__name__)
 

@@ -11,7 +11,6 @@ from path import Path
 from yaml.parser import ParserError
 
 from dakara_base.config import (
-    load_config,
     ConfigInvalidError,
     ConfigNotFoundError,
     ConfigParseError,
@@ -19,6 +18,7 @@ from dakara_base.config import (
     create_logger,
     get_config_directory,
     get_config_file,
+    load_config,
     set_loglevel,
 )
 

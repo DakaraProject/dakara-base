@@ -18,12 +18,11 @@ JSON messages.  It is pretty straightforward to use:
 
 import logging
 
-from furl import furl
 import requests
+from furl import furl
 
 from dakara_base.exceptions import DakaraError
-from dakara_base.utils import truncate_message, create_url
-
+from dakara_base.utils import create_url, truncate_message
 
 logger = logging.getLogger(__name__)
 

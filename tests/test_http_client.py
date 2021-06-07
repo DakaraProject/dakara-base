@@ -4,7 +4,6 @@ from unittest.mock import ANY, MagicMock, patch
 from requests.exceptions import RequestException
 
 from dakara_base.http_client import (
-    authenticated,
     AuthenticationError,
     HTTPClient,
     MethodError,
@@ -12,6 +11,7 @@ from dakara_base.http_client import (
     ParameterError,
     ResponseInvalidError,
     ResponseRequestError,
+    authenticated,
 )
 
 
