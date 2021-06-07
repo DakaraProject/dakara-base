@@ -1,0 +1,52 @@
+[tool.poetry]
+name = "dakarabase"
+version = "1.4.0-dev"
+description = "Collection of helper modules for the Dakara Project"
+authors = [
+        "Neraste <neraste.herr10@gmail.com>",
+        "Flore <flore.love@gmail.com>",
+]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/DakaraProject/dakara-base"
+classifiers = [
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Operating System :: OS Independent",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+]
+packages = [
+        {include="dakara_base", from="src"},
+        {include="tests", format="sdist"}
+]
+
+[tool.poetry.urls]
+"Bug tracker" = "https://github.com/DakaraProject/dakara-base/issues"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+coloredlogs = "^10.0"
+furl = "^2.0"
+importlib-resources = "^5.0.0"
+path = "^15.0"
+progressbar2 = "~3.43.1"
+PyYAML = "^5.1"
+requests = "^2.22"
+websocket-client = "^0.56"
+
+[tool.poetry.dev-dependencies]
+black = "19.10b0"
+codecov = "^2.1.11"
+flake8 = "^3.9.2"
+pytest = "^6.2.4"
+pytest-cov = "^2.12.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

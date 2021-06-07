@@ -27,26 +27,20 @@ Install the package with:
 pip install dakarabase
 ```
 
-If you have downloaded the repo, you can install the package directly with:
-
-```sh
-python setup.py install
-```
-
 ## Developpment
 
-### Install dependencies
-
-Please ensure you have a recent enough version of `setuptools`:
+This package is managed with [Poetry](https://python-poetry.org/):
 
 ```sh
-pip install --upgrade "setuptools>=40.0"
+pip install poetry
 ```
+
+### Install dependencies
 
 Install the dependencies with:
 
 ```sh
-pip install -e ".[tests]"
+poetry install
 ```
 
 This installs the normal dependencies of the package plus the dependencies for tests.
@@ -56,27 +50,7 @@ This installs the normal dependencies of the package plus the dependencies for t
 Run tests simply with:
 
 ```sh
-python setup.py test
-```
-
-Or directly with:
-
-```sh
-pytest
-```
-
-To check coverage, use the `coverage` command:
-
-```sh
-coverage run setup.py test
-coverage report -m
-```
-
-Or directly with:
-
-```sh
-coverage run -m pytest
-coverage report -m
+poetry run pytest
 ```
 
 ### Hooks

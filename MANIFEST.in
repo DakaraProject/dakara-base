@@ -1,4 +1,0 @@
-recursive-include tests *.py
-recursive-include tests/resources/ *.yaml
-include tests/resources/dummy
-include LICENSE
