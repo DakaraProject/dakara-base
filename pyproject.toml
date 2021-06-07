@@ -30,7 +30,7 @@ packages = [
 "Bug tracker" = "https://github.com/DakaraProject/dakara-base/issues"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.1"
 coloredlogs = "^10.0"
 furl = "^2.0"
 importlib-resources = "^5.0.0"
@@ -46,6 +46,7 @@ codecov = "^2.1.11"
 flake8 = "^3.9.2"
 pytest = "^6.2.4"
 pytest-cov = "^2.12.1"
+pre-commit = "^2.13.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
