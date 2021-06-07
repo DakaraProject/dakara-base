@@ -10,7 +10,7 @@ repos:
     hooks:
       - id: pytest-check
         name: Unit tests
-        entry: poetry run pytest
+        entry: poetry run pytest --no-cov
         language: system
         pass_filenames: false
       - id: isort-check
