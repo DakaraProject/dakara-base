@@ -54,7 +54,7 @@ for:
     after_test:
       # upload coverage stats to codecov.io
       # codecov token is stored in appveyor settings
-      - "python -m codecov"
+      - "poetry run codecov"
 
   - matrix:
       only:
@@ -86,4 +86,4 @@ for:
     after_test:
       # upload coverage stats to codecov.io
       # codecov token is stored in appveyor settings
-      - "py -%PYTHON% -m codecov"
+      - "py -%PYTHON% -m poetry run codecov"
