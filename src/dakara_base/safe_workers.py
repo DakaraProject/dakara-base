@@ -31,6 +31,7 @@ True
 
 
 import logging
+import platform
 import sys
 from functools import wraps
 from queue import Empty, Queue
@@ -429,6 +430,9 @@ class WorkerSafeThread(BaseWorker):
     initialization assigns its own thread to the instance and makes it target a
     dummy method.
 
+    If a method `run_function` is defined, it will be called in the main
+    thread. It must take no argument.
+
     Attributes:
         stop (threading.Event): Stop event that notify to stop the entire
             program when set.
@@ -525,21 +529,31 @@ class Runner:
         """Custom initialization stub."""
         pass
 
-    def run_safe(self, WorkerClass, *args, **kwargs):
+    def run_safe(self, worker_class, args=None, kwargs=None, function=None):
         """Execute a WorkerSafeThread instance thread.
 
         The thread is executed and the method waits for the stop event to be
         set or a user interruption to be triggered (Ctrl+C).
 
         Args:
-            WorkerClass (WorkerSafeThread): Worker class with safe thread.
+            worker_class (WorkerSafeThread): Worker class with safe thread.
                 Note you have to pass a custom class based on
                 `WorkerSafeThread`.
-            Other arguments are passed to the thread of WorkerClass.
+            args (list): Positional arguments passed to the worker class constructor.
+            kwargs (dict): Named arguments passed to the worker class constructor.
+            function (function): Function to execute in the main thread. It
+                must accept the stop event and be blocking as long as the event
+                is not set.
         """
+        if args is None:
+            args = ()
+
+        if kwargs is None:
+            kwargs = {}
+
         try:
             # create worker thread
-            with WorkerClass(self.stop, self.errors, *args, **kwargs) as worker:
+            with worker_class(self.stop, self.errors, *args, **kwargs) as worker:
 
                 logger.debug("Create worker thread")
                 worker.thread.start()
@@ -547,21 +561,32 @@ class Runner:
                 # wait for stop event
                 logger.debug("Waiting for stop event")
 
-                # We have to use a different code for Windows because the
-                # Ctrl+C event will not be handled during `self.stop.wait()`.
-                # This method is blocking for Windows, not for Linux, which is
-                # due to the way Ctrl+C is differently handled by the two OSs.
-                # For Windows, a quick and dirty solution consists in polling
-                # the `self.stop.wait()` with a timeout argument, so the call
-                # is non-permanently blocking.
-                # More resources on this:
-                # https://mail.python.org/pipermail/python-dev/2017-August/148800.html
-                # https://stackoverflow.com/a/51954792/4584444
-                if sys.platform.startswith("win"):
+                if function is not None:
+                    # if a function is provided, run it
+                    # it must ruturn when the stop event is set
+                    function(self.stop)
+
+                elif hasattr(worker, "run_function"):
+                    # if the worker has a function to run, run it
+                    # it must ruturn when the stop event is set
+                    worker.run_function()
+
+                elif platform.system() == "Windows":
+                    # We have to use a specific code for Windows because the
+                    # Ctrl+C event will not be handled during `self.stop.wait()`.
+                    # This method is blocking for Windows, not for Linux, which is
+                    # due to the way Ctrl+C is differently handled by the two OSs.
+                    # For Windows, a quick and dirty solution consists in polling
+                    # the `self.stop.wait()` with a timeout argument, so the call
+                    # is non-permanently blocking.
+                    # More resources on this:
+                    # https://mail.python.org/pipermail/python-dev/2017-August/148800.html
+                    # https://stackoverflow.com/a/51954792/4584444
                     while not self.stop.is_set():
                         self.stop.wait(self.POLLING_INTERVAL)
 
                 else:
+                    # by default, just wait for the program to stop
                     self.stop.wait()
 
         # stop on Ctrl+C

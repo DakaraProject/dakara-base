@@ -579,3 +579,44 @@ class RunnerTestCase(BaseTestCase):
         # post assertions
         self.assertTrue(self.runner.stop.is_set())
         self.assertTrue(self.runner.errors.empty())
+
+    def test_run_safe_function(self):
+        """Test a run with a function to execute on main thread.
+
+        The function raises an exception.
+        """
+        # pre assertions
+        self.assertFalse(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+        def function(stop):
+            raise MyError("error")
+
+        # call the method
+        with self.assertRaises(MyError):
+            self.runner.run_safe(self.WorkerNormal, function=function)
+
+        # post assertions
+        self.assertTrue(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+    def test_run_safe_worker_function(self):
+        """Test a run with a worker function to execute on main thread.
+
+        The function raises an exception.
+        """
+        # pre assertions
+        self.assertFalse(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+        class WorkerWithFunction(self.WorkerNormal):
+            def run_function(self):
+                raise MyError("error")
+
+        # call the method
+        with self.assertRaises(MyError):
+            self.runner.run_safe(WorkerWithFunction)
+
+        # post assertions
+        self.assertTrue(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
