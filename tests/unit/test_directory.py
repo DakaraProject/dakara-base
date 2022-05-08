@@ -14,5 +14,7 @@ class AppDirsPathTestCase(TestCase):
         self.assertIsInstance(appdirs.user_cache_dir, Path)
         self.assertIsInstance(appdirs.user_config_dir, Path)
         self.assertIsInstance(appdirs.user_data_dir, Path)
+        self.assertIsInstance(appdirs.user_documents_dir, Path)
         self.assertIsInstance(appdirs.user_log_dir, Path)
+        self.assertIsInstance(appdirs.user_runtime_dir, Path)
         self.assertIsInstance(appdirs.user_state_dir, Path)

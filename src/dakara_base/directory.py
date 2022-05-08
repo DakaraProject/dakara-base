@@ -13,8 +13,8 @@ objects:
 >>> type(directories.user_config_dir)
 ... path.Path
 """
-from appdirs import AppDirs
 from path import Path
+from platformdirs import PlatformDirs as AppDirs
 
 APP_NAME = "dakara"
 PROJECT_NAME = "DakaraProject"
@@ -44,12 +44,20 @@ class AppDirsPath(AppDirs):
         return Path(super().user_data_dir)
 
     @property
+    def user_documents_dir(self):
+        return Path(super().user_documents_dir)
+
+    @property
     def user_log_dir(self):
         return Path(super().user_log_dir)
+
+    @property
+    def user_runtime_dir(self):
+        return Path(super().user_runtime_dir)
 
     @property
     def user_state_dir(self):
         return Path(super().user_state_dir)
 
 
-directories = AppDirsPath(APP_NAME, PROJECT_NAME)
+directories = AppDirsPath(APP_NAME, PROJECT_NAME, roaming=True)
