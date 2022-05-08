@@ -1,8 +1,10 @@
+import os
+import platform
 import signal
 import subprocess
 from importlib.resources import path
 from time import sleep
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 
 from path import Path, TempDir
 
@@ -10,6 +12,10 @@ import dakara_base  # noqa F401
 
 
 class RunnerIntegrationTestCase(TestCase):
+    IS_SUBPROCESS_SAME_ENV = platform.system() != "Windows" or os.environ.get(
+        "SUBPROCESS_SAME_ENV_TEST"
+    )
+
     @staticmethod
     def wait_output(process, line, interval=0.1):
         """Wait a process to output a line.
@@ -30,7 +36,6 @@ class RunnerIntegrationTestCase(TestCase):
         while process.poll() is None:
             sleep(interval)
             out = process.stdout.readline()
-            print(out)
             if not out:
                 continue
 
@@ -39,6 +44,10 @@ class RunnerIntegrationTestCase(TestCase):
             if line in lines:
                 return lines
 
+    @skipUnless(
+        IS_SUBPROCESS_SAME_ENV,
+        "Can only be tested if subprocess environment is same as current environment",
+    )
     def test_run_safe_signal(self):
         """Test to send an interruption signal to a runner."""
         with TempDir() as tempdir:

@@ -100,6 +100,9 @@ for:
         - image: Visual Studio 2019
           PYTHON: "3.10"
 
+    environment:
+      SUBPROCESS_SAME_ENV_TEST: true
+
     cache:
       # enable cache for Python dependencies
       - "%LOCALAPPDATA%\\pip\\Cache"
