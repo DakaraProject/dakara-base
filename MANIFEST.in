@@ -1,4 +1,5 @@
+include LICENSE
+include tests/resources/dummy
+include tests/resources/empty_runner.py
 recursive-include tests *.py
 recursive-include tests/resources/ *.yaml
-include tests/resources/dummy
-include LICENSE
