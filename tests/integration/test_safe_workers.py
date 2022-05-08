@@ -4,7 +4,7 @@ import signal
 import subprocess
 from importlib.resources import path
 from time import sleep
-from unittest import TestCase, skipUnless
+from unittest import TestCase, skipIf, skipUnless
 
 from path import Path, TempDir
 
@@ -12,9 +12,10 @@ import dakara_base  # noqa F401
 
 
 class RunnerIntegrationTestCase(TestCase):
-    IS_SUBPROCESS_SAME_ENV = platform.system() != "Windows" or os.environ.get(
-        "SUBPROCESS_SAME_ENV_TEST"
+    IS_SUBPROCESS_SAME_ENV = (
+        platform.system() != "Windows" or "SUBPROCESS_SAME_ENV_TEST" in os.environ
     )
+    IS_BATCH_JOB = platform.system() == "Windows" and "BATCH_JOB_TEST" not in os.environ
 
     @staticmethod
     def wait_output(process, line, interval=0.1):
@@ -48,6 +49,7 @@ class RunnerIntegrationTestCase(TestCase):
         IS_SUBPROCESS_SAME_ENV,
         "Can only be tested if subprocess environment is same as current environment",
     )
+    @skipIf(IS_BATCH_JOB, "Can only be tested if script is not launched in batch job")
     def test_run_safe_signal(self):
         """Test to send an interruption signal to a runner."""
         with TempDir() as tempdir:
@@ -64,13 +66,14 @@ class RunnerIntegrationTestCase(TestCase):
 
             system = platform.system()
             if system == "Windows":
-                process.send_signal(signal.CTRL_BREAK_EVENT)
+                process.send_signal(signal.CTRL_C_EVENT)
 
             else:
                 process.send_signal(signal.SIGINT)
 
-            process.poll()
             out, _ = process.communicate()
             end_lines = out.splitlines()
             self.assertListEqual(start_lines, ["starting runner", "starting worker"])
             self.assertListEqual(end_lines, ["ending worker", "ending runner"])
+
+            self.assertEqual(process.returncode, 0)

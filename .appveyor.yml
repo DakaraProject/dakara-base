@@ -102,6 +102,7 @@ for:
 
     environment:
       SUBPROCESS_SAME_ENV_TEST: true
+      BATCH_JOB_TEST: true
 
     cache:
       # enable cache for Python dependencies
