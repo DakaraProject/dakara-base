@@ -83,7 +83,7 @@ for:
 
     test_script:
       # run tests
-      - "python -m coverage run -m pytest -v"
+      - "python -m pytest -v --cov-report term"
 
       # run code formatting tests
       - "python -m black . --check"
