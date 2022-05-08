@@ -64,7 +64,7 @@ class RunnerIntegrationTestCase(TestCase):
 
             system = platform.system()
             if system == "Windows":
-                process.send_signal(signal.CTRL_C_EVENT)
+                process.send_signal(signal.CTRL_BREAK_EVENT)
 
             else:
                 process.send_signal(signal.SIGINT)
