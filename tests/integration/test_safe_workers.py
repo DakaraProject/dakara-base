@@ -15,7 +15,7 @@ class RunnerIntegrationTestCase(TestCase):
     IS_SUBPROCESS_SAME_ENV = (
         platform.system() != "Windows" or "SUBPROCESS_SAME_ENV_TEST" in os.environ
     )
-    IS_BATCH_JOB = platform.system() == "Windows" and "BATCH_JOB_TEST" not in os.environ
+    IS_BATCH_JOB = platform.system() == "Windows" and "BATCH_JOB_TEST" in os.environ
 
     @staticmethod
     def wait_output(process, line, interval=0.1):
