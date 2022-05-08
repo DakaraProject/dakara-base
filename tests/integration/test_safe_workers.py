@@ -61,7 +61,14 @@ class RunnerIntegrationTestCase(TestCase):
                 text=True,
             )
             start_lines = self.wait_output(process, "starting worker")
-            process.send_signal(signal.SIGINT)
+
+            system = platform.system()
+            if system == "Windows":
+                process.send_signal(signal.CTRL_C_EVENT)
+
+            else:
+                process.send_signal(signal.SIGINT)
+
             process.poll()
             out, _ = process.communicate()
             end_lines = out.splitlines()
