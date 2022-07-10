@@ -626,7 +626,7 @@ class RunnerTestCase(BaseTestCase):
         self.assertTrue(self.runner.errors.empty())
 
         class WorkerWithFunction(self.WorkerNormal):
-            def run_main(self):
+            def run_main(self, stop, errors):
                 raise MyError("error")
 
         # call the method
@@ -647,7 +647,7 @@ class WaitTestCase(TestCase):
         ended = Event()
 
         def work():
-            wait(stop)
+            wait(stop, None)
             ended.set()
 
         thread = Thread(target=work)

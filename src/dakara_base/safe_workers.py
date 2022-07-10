@@ -499,8 +499,13 @@ class Runner:
     """Runner class.
 
     The runner creates the stop event and errors queue. It is designed to
-    execute the thread of a `WorkerSafeThread` instance until an error occurs
-    or an user interruption pops out (Ctrl+C).
+    execute the thread of a `WorkerSafeThread` instance until the end of the
+    program. This execution is done by the `run_safe` method, that will use a
+    blocking function. By default, the blocking function waits for an error to
+    occur or a user interruption to pop out (Ctrl+C). It can be replaced if a
+    `run_main` function is passed to `run_safe`, or if the `run_main` method of
+    the class is defined. The blocking function must accept a stop event and an
+    error queue, and be blocking untill the stop event is not set.
 
     The initialization creates the stop event and the errors queue and calls
     the custom init method.
@@ -532,7 +537,13 @@ class Runner:
         """Execute a WorkerSafeThread instance thread.
 
         The thread is executed and the method waits for the stop event to be
-        set or a user interruption to be triggered (Ctrl+C).
+        set or a user interruption to be triggered (Ctrl+C). An alternative
+        waiting function can be provided by `run_main`, or by the method
+        `run_main`. The choice of the function to run is:
+
+        1. Provided `run_main` function;
+        2. Class `run_main` method; or
+        3. Default module `wait` function.
 
         Args:
             worker_class (WorkerSafeThread): Worker class with safe thread.
@@ -541,8 +552,8 @@ class Runner:
             args (list): Positional arguments passed to the worker class constructor.
             kwargs (dict): Named arguments passed to the worker class constructor.
             run_main (function): Function to execute in the main thread. It
-                must accept the stop event and be blocking as long as the event
-                is not set.
+                must accept the stop event and the errors queue, and must be
+                blocking as long as the stop event is not set.
         """
         if args is None:
             args = ()
@@ -552,7 +563,7 @@ class Runner:
 
         # register user interruption
         def on_sigint(signal_number, frame):
-            logger.debug(f"Receiving signal {signal_number} to close")
+            logger.debug("Receiving signal %i to close", signal_number)
             self.errors.put(None)
             self.stop.set()
 
@@ -563,6 +574,7 @@ class Runner:
             logger.debug("Create worker thread")
             worker.thread.start()
 
+            # wait
             if run_main is not None:
                 # if a function is provided, run it
                 # it must ruturn when the stop event is set
@@ -571,10 +583,10 @@ class Runner:
             elif hasattr(worker, "run_main"):
                 # if the worker has a function to run, run it
                 # it must ruturn when the stop event is set
-                worker.run_main()
+                worker.run_main(self.stop, self.errors)
 
             else:
-                wait(self.stop)
+                wait(self.stop, self.errors)
 
         # get the error from the error queue
         # a delay of 5 seconds is accorded for the error to be retrieved
@@ -597,7 +609,7 @@ class Runner:
         raise error
 
 
-def wait(stop, interval=0.5):
+def wait(stop, errors, interval=0.5):
     """Wait for stop event to be set.
 
     We have to use a specific code for Windows because the Ctrl+C event will
@@ -613,8 +625,9 @@ def wait(stop, interval=0.5):
 
     Args:
         stop (threading.Event): Stop event.
-        interval (float): For Windows only, interval between two
-            attempts to wait for the stop event.
+        errors (queue.Queue): Errors queue.
+        interval (float): For Windows only, interval between two attempts to
+            wait for the stop event.
     """
     logger.debug("Waiting for stop event")
 
