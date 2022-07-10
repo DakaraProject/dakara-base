@@ -504,8 +504,9 @@ class Runner:
     blocking function. By default, the blocking function waits for an error to
     occur or a user interruption to pop out (Ctrl+C). It can be replaced if a
     `run_main` function is passed to `run_safe`, or if the `run_main` method of
-    the class is defined. The blocking function must accept a stop event and an
-    error queue, and be blocking untill the stop event is not set.
+    the used `WorkerSafeThread` class is defined. The blocking function must
+    accept a stop event and an error queue, and be blocking as long as the stop
+    event is not set.
 
     The initialization creates the stop event and the errors queue and calls
     the custom init method.
@@ -542,7 +543,7 @@ class Runner:
         `run_main`. The choice of the function to run is:
 
         1. Provided `run_main` function;
-        2. Class `run_main` method; or
+        2. Worker class `run_main` method; or
         3. Default module `wait` function.
 
         Args:
@@ -574,19 +575,22 @@ class Runner:
             logger.debug("Create worker thread")
             worker.thread.start()
 
-            # wait
+            # select blocking function
             if run_main is not None:
                 # if a function is provided, run it
                 # it must ruturn when the stop event is set
-                run_main(self.stop, self.errors)
+                block = run_main
 
             elif hasattr(worker, "run_main"):
                 # if the worker has a function to run, run it
                 # it must ruturn when the stop event is set
-                worker.run_main(self.stop, self.errors)
+                block = getattr(worker, "run_main")
 
             else:
-                wait(self.stop, self.errors)
+                block = wait
+
+            # wait
+            block(self.stop, self.errors)
 
         # get the error from the error queue
         # a delay of 5 seconds is accorded for the error to be retrieved
