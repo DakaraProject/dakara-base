@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from queue import Queue
-from threading import Event, Timer
+from threading import Event, Thread, Timer
 from time import sleep
 from unittest import TestCase
 
@@ -639,9 +639,24 @@ class RunnerTestCase(BaseTestCase):
 
 
 class WaitTestCase(TestCase):
+    DELAY = 0.5
+
     def test_wait(self):
         """Test to wait for an event."""
         stop = Event()
+        ended = Event()
+
+        def work():
+            wait(stop)
+            ended.set()
+
+        thread = Thread(target=work)
+        thread.start()
+
+        sleep(self.DELAY)
         stop.set()
-        wait(stop)
+
+        thread.join()
+
         self.assertTrue(stop.is_set())
+        self.assertTrue(ended.is_set())

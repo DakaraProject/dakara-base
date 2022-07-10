@@ -506,15 +506,12 @@ class Runner:
     the custom init method.
 
     Attributes:
-        POLLING_INTERVAL (float): For Windows only, interval between two
-            attempts to wait for the stop event.
         stop (threading.Event): Stop event that notify to stop the execution of
             the thread.
         errors (queue.Queue): Error queue to communicate the exception of the
             thread.
     """
 
-    POLLING_INTERVAL = 0.5
     ERROR_TIMEOUT = 5
 
     def __init__(self, *args, **kwargs):
@@ -600,27 +597,30 @@ class Runner:
         raise error
 
 
-def wait(stop):
+def wait(stop, interval=0.5):
     """Wait for stop event to be set.
+
+    We have to use a specific code for Windows because the Ctrl+C event will
+    not be handled during `self.stop.wait()`. This method is blocking for
+    Windows, not for Linux, which is due to the way Ctrl+C is differently
+    handled by the two OSs. For Windows, a quick and dirty solution consists
+    in polling the `self.stop.wait()` with a timeout argument, so the call is
+    non-permanently blocking.
+
+    See also:
+        https://mail.python.org/pipermail/python-dev/2017-August/148800.html
+        https://stackoverflow.com/a/51954792/4584444
 
     Args:
         stop (threading.Event): Stop event.
+        interval (float): For Windows only, interval between two
+            attempts to wait for the stop event.
     """
     logger.debug("Waiting for stop event")
 
     if platform.system() == "Windows":
-        # We have to use a specific code for Windows because the
-        # Ctrl+C event will not be handled during `self.stop.wait()`.
-        # This method is blocking for Windows, not for Linux, which is
-        # due to the way Ctrl+C is differently handled by the two OSs.
-        # For Windows, a quick and dirty solution consists in polling
-        # the `self.stop.wait()` with a timeout argument, so the call
-        # is non-permanently blocking.
-        # More resources on this:
-        # https://mail.python.org/pipermail/python-dev/2017-August/148800.html
-        # https://stackoverflow.com/a/51954792/4584444
         while not stop.is_set():
-            stop.wait(Runner.POLLING_INTERVAL)
+            stop.wait(interval)
 
         return
 
