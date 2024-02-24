@@ -1,13 +1,13 @@
 from contextlib import contextmanager
 from queue import Queue
-from threading import Event, Timer
+from threading import Event, Thread, Timer
 from time import sleep
 from unittest import TestCase
-from unittest.mock import MagicMock
 
 from dakara_base.safe_workers import (
     BaseSafeThread,
     BaseWorker,
+    EmptyErrorsQueueError,
     Runner,
     SafeThread,
     SafeTimer,
@@ -17,6 +17,7 @@ from dakara_base.safe_workers import (
     WorkerSafeThread,
     WorkerSafeTimer,
     safe,
+    wait,
 )
 
 
@@ -539,29 +540,6 @@ class RunnerTestCase(BaseTestCase):
         # create class to test
         self.runner = Runner()
 
-    def test_run_safe_interrupt(self):
-        """Test a run with an interruption by KeyboardInterrupt exception.
-
-        The run should end with a set stop event and an empty errors queue.
-        """
-        # pre assertions
-        self.assertFalse(self.runner.stop.is_set())
-        self.assertTrue(self.runner.errors.empty())
-
-        # modify stop event wait method
-        self.runner.stop.wait = MagicMock()
-        self.runner.stop.wait.side_effect = KeyboardInterrupt
-
-        # call the method
-        self.runner.run_safe(self.WorkerNormal)
-
-        # post assertions
-        self.assertTrue(self.runner.stop.is_set())
-        self.assertTrue(self.runner.errors.empty())
-
-        # assert stop event wait method was called
-        self.runner.stop.wait.assert_called_once()
-
     def test_run_safe_error(self):
         """Test a run with an error.
 
@@ -579,3 +557,106 @@ class RunnerTestCase(BaseTestCase):
         # post assertions
         self.assertTrue(self.runner.stop.is_set())
         self.assertTrue(self.runner.errors.empty())
+
+    def test_run_safe_function_quit(self):
+        """Test a run with a function to execute on main thread.
+
+        The function simply exits.
+        """
+        # pre assertions
+        self.assertFalse(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+        def function(stop, errors):
+            errors.put(None)
+            stop.set()
+
+        # call the method
+        self.runner.run_safe(self.WorkerNormal, run_main=function)
+
+        # post assertions
+        self.assertTrue(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+    def test_run_safe_function_no_error(self):
+        """Test a run that sets stop event but does not give an error."""
+        # pre assertions
+        self.assertFalse(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+        def function(stop, errors):
+            stop.set()
+
+        # call the method
+        with self.assertRaises(EmptyErrorsQueueError):
+            self.runner.ERROR_TIMEOUT = 0
+            self.runner.run_safe(self.WorkerNormal, run_main=function)
+
+        # post assertions
+        self.assertTrue(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+    def test_run_safe_function_error(self):
+        """Test a run with a function to execute on main thread.
+
+        The function raises an exception.
+        """
+        # pre assertions
+        self.assertFalse(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+        def function(stop, errors):
+            raise MyError("error")
+
+        # call the method
+        with self.assertRaises(MyError):
+            self.runner.run_safe(self.WorkerNormal, run_main=function)
+
+        # post assertions
+        self.assertTrue(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+    def test_run_safe_worker_function_error(self):
+        """Test a run with a worker function to execute on main thread.
+
+        The function raises an exception.
+        """
+        # pre assertions
+        self.assertFalse(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+        class WorkerWithFunction(self.WorkerNormal):
+            def run_main(self, stop, errors):
+                raise MyError("error")
+
+        # call the method
+        with self.assertRaises(MyError):
+            self.runner.run_safe(WorkerWithFunction)
+
+        # post assertions
+        self.assertTrue(self.runner.stop.is_set())
+        self.assertTrue(self.runner.errors.empty())
+
+
+class WaitTestCase(TestCase):
+    DELAY = 0.5
+
+    def test_wait(self):
+        """Test to wait for an event."""
+        stop = Event()
+        ended = Event()
+
+        def work():
+            wait(stop, None)
+            ended.set()
+
+        thread = Thread(target=work)
+        thread.start()
+
+        sleep(self.DELAY)
+        stop.set()
+
+        thread.join()
+
+        self.assertTrue(stop.is_set())
+        self.assertTrue(ended.is_set())

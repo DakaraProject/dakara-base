@@ -31,6 +31,8 @@ True
 
 
 import logging
+import platform
+import signal
 import sys
 from functools import wraps
 from queue import Empty, Queue
@@ -429,6 +431,9 @@ class WorkerSafeThread(BaseWorker):
     initialization assigns its own thread to the instance and makes it target a
     dummy method.
 
+    If a method `run_main` is defined, it will be called in the main thread. It
+    takes the stop event end the errors queue as arguments.
+
     Attributes:
         stop (threading.Event): Stop event that notify to stop the entire
             program when set.
@@ -494,22 +499,26 @@ class Runner:
     """Runner class.
 
     The runner creates the stop event and errors queue. It is designed to
-    execute the thread of a `WorkerSafeThread` instance until an error occurs
-    or an user interruption pops out (Ctrl+C).
+    execute the thread of a `WorkerSafeThread` instance until the end of the
+    program. This execution is done by the `run_safe` method, that will use a
+    blocking function. By default, the blocking function waits for an error to
+    occur or a user interruption to pop out (Ctrl+C). It can be replaced if a
+    `run_main` function is passed to `run_safe`, or if the `run_main` method of
+    the used `WorkerSafeThread` class is defined. The blocking function must
+    accept a stop event and an error queue, and be blocking as long as the stop
+    event is not set.
 
     The initialization creates the stop event and the errors queue and calls
     the custom init method.
 
     Attributes:
-        POLLING_INTERVAL (float): For Windows only, interval between two
-            attempts to wait for the stop event.
         stop (threading.Event): Stop event that notify to stop the execution of
             the thread.
         errors (queue.Queue): Error queue to communicate the exception of the
             thread.
     """
 
-    POLLING_INTERVAL = 0.5
+    ERROR_TIMEOUT = 5
 
     def __init__(self, *args, **kwargs):
         # create stop event
@@ -525,65 +534,115 @@ class Runner:
         """Custom initialization stub."""
         pass
 
-    def run_safe(self, WorkerClass, *args, **kwargs):
+    def run_safe(self, worker_class, args=None, kwargs=None, run_main=None):
         """Execute a WorkerSafeThread instance thread.
 
         The thread is executed and the method waits for the stop event to be
-        set or a user interruption to be triggered (Ctrl+C).
+        set or a user interruption to be triggered (Ctrl+C). An alternative
+        waiting function can be provided by `run_main`, or by the method
+        `run_main`. The choice of the function to run is:
+
+        1. Provided `run_main` function;
+        2. Worker class `run_main` method; or
+        3. Default module `wait` function.
 
         Args:
-            WorkerClass (WorkerSafeThread): Worker class with safe thread.
+            worker_class (WorkerSafeThread): Worker class with safe thread.
                 Note you have to pass a custom class based on
                 `WorkerSafeThread`.
-            Other arguments are passed to the thread of WorkerClass.
+            args (list): Positional arguments passed to the worker class constructor.
+            kwargs (dict): Named arguments passed to the worker class constructor.
+            run_main (function): Function to execute in the main thread. It
+                must accept the stop event and the errors queue, and must be
+                blocking as long as the stop event is not set.
         """
-        try:
-            # create worker thread
-            with WorkerClass(self.stop, self.errors, *args, **kwargs) as worker:
+        if args is None:
+            args = ()
 
-                logger.debug("Create worker thread")
-                worker.thread.start()
+        if kwargs is None:
+            kwargs = {}
 
-                # wait for stop event
-                logger.debug("Waiting for stop event")
-
-                # We have to use a different code for Windows because the
-                # Ctrl+C event will not be handled during `self.stop.wait()`.
-                # This method is blocking for Windows, not for Linux, which is
-                # due to the way Ctrl+C is differently handled by the two OSs.
-                # For Windows, a quick and dirty solution consists in polling
-                # the `self.stop.wait()` with a timeout argument, so the call
-                # is non-permanently blocking.
-                # More resources on this:
-                # https://mail.python.org/pipermail/python-dev/2017-August/148800.html
-                # https://stackoverflow.com/a/51954792/4584444
-                if sys.platform.startswith("win"):
-                    while not self.stop.is_set():
-                        self.stop.wait(self.POLLING_INTERVAL)
-
-                else:
-                    self.stop.wait()
-
-        # stop on Ctrl+C
-        except KeyboardInterrupt:
-            logger.debug("User stop caught")
+        # register user interruption
+        def on_sigint(signal_number, frame):
+            logger.debug("Receiving signal %i to close", signal_number)
+            self.errors.put(None)
             self.stop.set()
 
-        # stop on error
-        else:
-            logger.debug("Internal error caught")
+        signal.signal(signal.SIGINT, on_sigint)
 
-            # get the error from the error queue and re-raise it
-            # a delay of 5 seconds is accorded for the error to be retrieved
-            try:
-                _, error, traceback = self.errors.get(5)
-                error.with_traceback(traceback)
-                raise error
+        # create worker thread
+        with worker_class(self.stop, self.errors, *args, **kwargs) as worker:
+            logger.debug("Create worker thread")
+            worker.thread.start()
 
-            # if there is no error in the error queue, raise a general error
-            # this case is very unlikely to happen and is not tested
-            except Empty as empty_error:
-                raise NoErrorCaughtError("Unknown error happened") from empty_error
+            # select blocking function
+            if run_main is not None:
+                # if a function is provided, run it
+                # it must ruturn when the stop event is set
+                block = run_main
+
+            elif hasattr(worker, "run_main"):
+                # if the worker has a function to run, run it
+                # it must ruturn when the stop event is set
+                block = getattr(worker, "run_main")
+
+            else:
+                block = wait
+
+            # wait
+            block(self.stop, self.errors)
+
+        # get the error from the error queue
+        # a delay of 5 seconds is accorded for the error to be retrieved
+        try:
+            reason = self.errors.get(timeout=self.ERROR_TIMEOUT)
+
+        # if there is no error in the error queue, raise a general error
+        # this case is very unlikely to happen and is not tested
+        except Empty as empty_error:
+            raise EmptyErrorsQueueError("Unknown error happened") from empty_error
+
+        # if there is no error, this is a normal interruption
+        if reason is None:
+            logger.debug("User stop caught")
+            return
+
+        _, error, traceback = reason
+        logger.debug("Internal error caught")
+        error.with_traceback(traceback)
+        raise error
+
+
+def wait(stop, errors, interval=0.5):
+    """Wait for stop event to be set.
+
+    We have to use a specific code for Windows because the Ctrl+C event will
+    not be handled during `self.stop.wait()`. This method is blocking for
+    Windows, not for Linux, which is due to the way Ctrl+C is differently
+    handled by the two OSs. For Windows, a quick and dirty solution consists
+    in polling the `self.stop.wait()` with a timeout argument, so the call is
+    non-permanently blocking.
+
+    See also:
+        https://mail.python.org/pipermail/python-dev/2017-August/148800.html
+        https://stackoverflow.com/a/51954792/4584444
+
+    Args:
+        stop (threading.Event): Stop event.
+        errors (queue.Queue): Errors queue.
+        interval (float): For Windows only, interval between two attempts to
+            wait for the stop event.
+    """
+    logger.debug("Waiting for stop event")
+
+    if platform.system() == "Windows":
+        while not stop.is_set():
+            stop.wait(interval)
+
+        return
+
+    # otherwise just wait for the program to stop
+    stop.wait()
 
 
 class UnredefinedTimerError(DakaraError):
@@ -602,7 +661,7 @@ class UnredefinedThreadError(DakaraError):
     """
 
 
-class NoErrorCaughtError(RuntimeError):
+class EmptyErrorsQueueError(RuntimeError):
     """No error caught error.
 
     Error raised if the safe workers mechanism stops for an error, but there is
