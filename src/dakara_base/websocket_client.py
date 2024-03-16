@@ -33,6 +33,7 @@ be optained by the `HTTPClient` class from the `http_client` module, with the
 import json
 import logging
 from functools import wraps
+from typing import Dict, Optional
 
 from websocket import (
     WebSocketApp,
@@ -111,7 +112,11 @@ class WebSocketClient(WorkerSafeTimer):
         header (dict): Header containing the authentication token.
     """
 
-    def init_worker(self, config, endpoint="", header={}):
+    def init_worker(
+        self, config: Dict, endpoint: str = "", header: Optional[Dict] = None
+    ):
+        if header is None:
+            header = {}
         # url
         self.server_url = create_url(
             **config, path=endpoint, scheme_no_ssl="ws", scheme_ssl="wss"
