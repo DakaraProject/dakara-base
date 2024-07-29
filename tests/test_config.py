@@ -1,6 +1,6 @@
 import os
 from unittest import TestCase
-from unittest.mock import PropertyMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 try:
     from importlib.resources import path
@@ -281,6 +281,15 @@ class SetLoglevelTestCase(TestCase):
         mocked_set_level.assert_called_with("INFO")
 
 
+# fix required for Python 3.8 as you seemingly cannot use an invalid path as a
+# context manager
+def mock_context_manager(return_value):
+    mock = MagicMock()
+    mock.__enter__.return_value = return_value
+
+    return mock
+
+
 @patch("dakara_base.config.shutil.copyfile")
 @patch.object(Path, "exists")
 @patch.object(Path, "mkdir")
@@ -289,7 +298,10 @@ class SetLoglevelTestCase(TestCase):
     "user_config_dir",
     new_callable=PropertyMock(return_value=Path("path") / "to" / "directory"),
 )
-@patch("dakara_base.config.path", return_value=Path("path") / "to" / "source")
+@patch(
+    "dakara_base.config.path",
+    return_value=mock_context_manager(Path("path") / "to" / "source"),
+)
 class CreateConfigFileTestCase(TestCase):
     """Test the config file creator."""
 
