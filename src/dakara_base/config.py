@@ -307,7 +307,7 @@ def create_config_file(resource, filename, force=False):
     """
     with path(resource, filename) as origin:
         # get the file
-        destination = directories.user_config_dir / filename
+        destination = directories.user_config_path / filename
 
         # create directory
         destination.parent.mkdir(parents=True, exists_ok=True)

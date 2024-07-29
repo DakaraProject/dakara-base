@@ -11,6 +11,7 @@ except ImportError:
 from pathlib import Path
 
 from environs import Env
+from platformdirs import PlatformDirs
 from yaml.parser import ParserError
 
 from dakara_base.config import (
@@ -283,8 +284,9 @@ class SetLoglevelTestCase(TestCase):
 @patch("dakara_base.config.shutil.copyfile")
 @patch.object(Path, "exists")
 @patch.object(Path, "mkdir")
-@patch(
-    "dakara_base.directory.AppDirsPath.user_config_dir",
+@patch.object(
+    PlatformDirs,
+    "user_config_dir",
     new_callable=PropertyMock(return_value=Path("path") / "to" / "directory"),
 )
 @patch("dakara_base.config.path", return_value=Path("path") / "to" / "source")
