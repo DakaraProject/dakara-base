@@ -8,8 +8,9 @@ try:
 except ImportError:
     from importlib_resources import path
 
+from pathlib import Path
+
 from environs import Env
-from path import Path
 from yaml.parser import ParserError
 
 from dakara_base.config import (
@@ -279,16 +280,14 @@ class SetLoglevelTestCase(TestCase):
         mocked_set_level.assert_called_with("INFO")
 
 
-@patch.object(Path, "copyfile")
+@patch("dakara_base.config.shutil.copyfile")
 @patch.object(Path, "exists")
-@patch.object(Path, "mkdir_p")
+@patch.object(Path, "mkdir")
 @patch(
     "dakara_base.directory.AppDirsPath.user_config_dir",
     new_callable=PropertyMock(return_value=Path("path") / "to" / "directory"),
 )
-@patch(
-    "dakara_base.config.path",
-)
+@patch("dakara_base.config.path", return_value=Path("path") / "to" / "source")
 class CreateConfigFileTestCase(TestCase):
     """Test the config file creator."""
 
@@ -296,7 +295,7 @@ class CreateConfigFileTestCase(TestCase):
         self,
         mocked_path,
         mocked_user_config_dir,
-        mocked_mkdir_p,
+        mocked_mkdir,
         mocked_exists,
         mocked_copyfile,
     ):
@@ -310,10 +309,11 @@ class CreateConfigFileTestCase(TestCase):
 
         # assert the call
         mocked_path.assert_called_with("module.resources", "config.yaml")
-        mocked_mkdir_p.assert_called_with()
+        mocked_mkdir.assert_called_with(parents=True, exists_ok=True)
         mocked_exists.assert_called_with()
         mocked_copyfile.assert_called_with(
-            Path("path") / "to" / "directory" / "config.yaml"
+            Path("path") / "to" / "source",
+            Path("path") / "to" / "directory" / "config.yaml",
         )
 
         # assert the logs
@@ -332,7 +332,7 @@ class CreateConfigFileTestCase(TestCase):
         mocked_input,
         mocked_path,
         mocked_user_config_dir,
-        mocked_mkdir_p,
+        mocked_mkdir,
         mocked_exists,
         mocked_copyfile,
     ):
@@ -358,7 +358,7 @@ class CreateConfigFileTestCase(TestCase):
         mocked_input,
         mocked_path,
         mocked_user_config_dir,
-        mocked_mkdir_p,
+        mocked_mkdir,
         mocked_exists,
         mocked_copyfile,
     ):
@@ -379,7 +379,7 @@ class CreateConfigFileTestCase(TestCase):
         mocked_input,
         mocked_path,
         mocked_user_config_dir,
-        mocked_mkdir_p,
+        mocked_mkdir,
         mocked_exists,
         mocked_copyfile,
     ):
@@ -391,5 +391,6 @@ class CreateConfigFileTestCase(TestCase):
         mocked_exists.assert_not_called()
         mocked_input.assert_not_called()
         mocked_copyfile.assert_called_with(
-            Path("path") / "to" / "directory" / "config.yaml"
+            Path("path") / "to" / "source",
+            Path("path") / "to" / "directory" / "config.yaml",
         )

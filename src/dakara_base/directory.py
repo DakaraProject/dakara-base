@@ -7,13 +7,14 @@ This module gives application name and project name:
 >>> PROJECT_NAME
 ... "DakaraProject"
 
-It also gives an evolved version of `appdirs.AppDirs` that returns `path.Path`
-objects:
+It also gives an evolved version of `appdirs.AppDirs` that returns
+`pathlib.Path` objects:
 
 >>> type(directories.user_config_dir)
-... path.Path
+... pathlib.Path
 """
-from path import Path
+from pathlib import Path
+
 from platformdirs import PlatformDirs as AppDirs
 
 APP_NAME = "dakara"
@@ -21,7 +22,7 @@ PROJECT_NAME = "DakaraProject"
 
 
 class AppDirsPath(AppDirs):
-    """AppDirs class that returns `path.Path` objects."""
+    """AppDirs class that returns `pathlib.Path` objects."""
 
     @property
     def site_config_dir(self):
