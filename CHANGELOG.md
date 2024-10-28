@@ -32,7 +32,7 @@
 
 ### Added
 
-- Support Python 3.12.
+- Support Python 3.12 and 3.13.
 
 ### Changed
 
