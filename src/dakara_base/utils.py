@@ -26,6 +26,7 @@ as host, port, etc.:
 >>> create_url(**config)
 "https://www.example.com:8080/api/"
 """
+
 from furl import furl
 
 from dakara_base.exceptions import DakaraError
@@ -61,7 +62,7 @@ def create_url(
     ssl=False,
     scheme_no_ssl="http",
     scheme_ssl="https",
-    **kwargs
+    **kwargs,
 ):
     """Create an URL from arguments.
 

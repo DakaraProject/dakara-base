@@ -29,7 +29,6 @@ in sub-threads by the main one.
 True
 """
 
-
 import logging
 import sys
 from functools import wraps

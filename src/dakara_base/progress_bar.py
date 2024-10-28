@@ -27,7 +27,6 @@ to not pollute the log file.
 The text is displayed as a log entry.
 """
 
-
 import logging
 
 import progressbar
