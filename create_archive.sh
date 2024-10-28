@@ -4,7 +4,7 @@
 set -eu
 
 # getting version of the package
-version=$(python -c "from setuptools import setup; setup" --version)
+version=$(python -c "from setuptools import setup; setup()" --version)
 echo "Creating archive for dakara_base v$version"
 
 # install twine
@@ -18,4 +18,4 @@ python -m build
 
 # upload to PyPI
 echo "Package will be uploaded tp Pypi"
-python -m twine upload dist/*
+python -m twine upload --repository dakarabase dist/*
