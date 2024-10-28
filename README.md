@@ -20,6 +20,7 @@ This project is a collection of tools and helper modules for the Dakara Project.
 * `progress_bar`: a collection of progress bars;
 * `safe_workers`: a library to facilitate the manipulation of threads;
 * `utils`: other various helpers;
+- `version_check`: a checker for the version of a project;
 * `websocket_client`: a Websocket client.
 
 ## Install
