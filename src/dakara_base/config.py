@@ -309,7 +309,7 @@ def create_config_file(resource, filename, force=False):
         destination = directories.user_config_path / filename
 
         # create directory
-        destination.parent.mkdir(parents=True, exists_ok=True)
+        destination.parent.mkdir(parents=True, exist_ok=True)
 
         # check destination does not exist
         if not force and destination.exists():

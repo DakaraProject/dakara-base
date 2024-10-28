@@ -323,7 +323,7 @@ class CreateConfigFileTestCase(TestCase):
 
         # assert the call
         mocked_path.assert_called_with("module.resources", "config.yaml")
-        mocked_mkdir.assert_called_with(parents=True, exists_ok=True)
+        mocked_mkdir.assert_called_with(parents=True, exist_ok=True)
         mocked_exists.assert_called_with()
         mocked_copyfile.assert_called_with(
             Path("path") / "to" / "source",
