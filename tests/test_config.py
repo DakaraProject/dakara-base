@@ -1,6 +1,6 @@
 import os
 from unittest import TestCase
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import ANY, MagicMock, PropertyMock, patch
 
 try:
     from importlib.resources import path
@@ -142,13 +142,13 @@ class ConfigTestCase(TestCase):
         config.set_debug()
         self.assertEqual(config["loglevel"], "DEBUG")
 
-    @patch.object(Config, "check_mandatory_key")
+    @patch.object(Config, "check_mandatory_key", autospec=True)
     def test_check_madatory_keys(self, mocked_check_mandatory_key):
         """Test to check a list of keys."""
         config = Config("DAKARA")
         config.check_mandatory_keys(["key"])
 
-        mocked_check_mandatory_key.assert_called_once_with("key")
+        mocked_check_mandatory_key.assert_called_once_with(config, "key")
 
     def test_check_madatory_key_missing(self):
         """Test to check config without a required key."""
@@ -221,7 +221,7 @@ class ConfigTestCase(TestCase):
 class CreateLoggerTestCase(TestCase):
     """Test the `create_logger` function."""
 
-    @patch("dakara_base.progress_bar.progressbar.streams.wrap_stderr")
+    @patch("dakara_base.progress_bar.progressbar.streams.wrap_stderr", autospec=True)
     @patch("dakara_base.config.coloredlogs.install", autospec=True)
     def test_normal(self, mocked_install, mocked_wrap_stderr):
         """Test to call the method normally."""
@@ -232,7 +232,7 @@ class CreateLoggerTestCase(TestCase):
         mocked_install.assert_called_with(fmt="my format", level="my level")
         mocked_wrap_stderr.assert_not_called()
 
-    @patch("dakara_base.progress_bar.progressbar.streams.wrap_stderr")
+    @patch("dakara_base.progress_bar.progressbar.streams.wrap_stderr", autospec=True)
     @patch("dakara_base.config.coloredlogs.install", autospec=True)
     def test_wrap(self, mocked_install, mocked_wrap_stderr):
         """Test to call the method and request to wrap stderr."""
@@ -243,7 +243,7 @@ class CreateLoggerTestCase(TestCase):
         mocked_install.assert_called_with(fmt="my format", level="my level")
         mocked_wrap_stderr.assert_called_with()
 
-    @patch("dakara_base.progress_bar.progressbar.streams.wrap_stderr")
+    @patch("dakara_base.progress_bar.progressbar.streams.wrap_stderr", autospec=True)
     @patch("dakara_base.config.coloredlogs.install", autospec=True)
     def test_custom(self, mocked_install, mocked_wrap_stderr):
         """Test to call the method with custom format and level."""
@@ -290,9 +290,9 @@ def mock_context_manager(return_value):
     return mock
 
 
-@patch("dakara_base.config.shutil.copyfile")
-@patch.object(Path, "exists")
-@patch.object(Path, "mkdir")
+@patch("dakara_base.config.shutil.copyfile", autospec=True)
+@patch.object(Path, "exists", autospec=True)
+@patch.object(Path, "mkdir", autospec=True)
 @patch.object(
     PlatformDirs,
     "user_config_dir",
@@ -301,6 +301,7 @@ def mock_context_manager(return_value):
 @patch(
     "dakara_base.config.path",
     return_value=mock_context_manager(Path("path") / "to" / "source"),
+    autospec=True,
 )
 class CreateConfigFileTestCase(TestCase):
     """Test the config file creator."""
@@ -323,8 +324,8 @@ class CreateConfigFileTestCase(TestCase):
 
         # assert the call
         mocked_path.assert_called_with("module.resources", "config.yaml")
-        mocked_mkdir.assert_called_with(parents=True, exist_ok=True)
-        mocked_exists.assert_called_with()
+        mocked_mkdir.assert_called_with(ANY, parents=True, exist_ok=True)
+        mocked_exists.assert_called_with(ANY)
         mocked_copyfile.assert_called_with(
             Path("path") / "to" / "source",
             Path("path") / "to" / "directory" / "config.yaml",
