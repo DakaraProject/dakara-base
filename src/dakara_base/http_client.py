@@ -15,7 +15,6 @@ JSON messages.  It is pretty straightforward to use:
 >>> client.post("library/songs", json={"title": "some title"})
 """
 
-
 import logging
 from functools import wraps
 
@@ -114,7 +113,7 @@ class HTTPClient:
         *args,
         message_on_error="",
         function_on_error=None,
-        **kwargs
+        **kwargs,
     ):
         """Generic method to send requests to the server.
 

@@ -9,6 +9,7 @@ This module gives application name and project name:
 
 It also gives a preconfigured `platformdirs.PlatformDirs` for Dakara.
 """
+
 from platformdirs import PlatformDirs
 
 APP_NAME = "dakara"
