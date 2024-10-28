@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+## 2.0.0 - 2024-10-28
+
 ### Added
 
 - Support Python 3.12 and 3.13.

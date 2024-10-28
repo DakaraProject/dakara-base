@@ -4,5 +4,5 @@ Version file.
 The file is automatically updated by `bump_version.sh`.
 """
 
-__version__ = "1.5.0-dev"
-__date__ = "2022-11-19"
+__version__ = "2.0.0"
+__date__ = "2024-10-28"
