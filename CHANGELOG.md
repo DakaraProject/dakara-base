@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+## 2.0.1 - 2024-10-28
+
 ### Fixed
 
 - Incorrect parameter passed to `pathlib.Path.mkdir`.
