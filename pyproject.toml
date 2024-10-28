@@ -45,6 +45,7 @@ dev = [
         "pytest>=8.3.3,<8.4.0",
         "ruff>=0.7.1,<0.8.0",
 ]
+# note: update .pre-commit-config.yaml as well
 
 [project.urls]
 Homepage = "https://github.com/DakaraProject/dakara-base"
