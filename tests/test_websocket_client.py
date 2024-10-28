@@ -152,8 +152,8 @@ class WebSocketClientTestCase(TestCase):
         # assert the call
         mocked_on_connected.assert_called_with(self.client)
 
-    @patch.object(WebSocketClient, "create_timer")
-    @patch.object(WebSocketClient, "on_connection_lost")
+    @patch.object(WebSocketClient, "create_timer", autospec=True)
+    @patch.object(WebSocketClient, "on_connection_lost", autospec=True)
     def test_on_close_normal(self, mocked_on_connection_lost, mocked_create_timer):
         """Test the callback on connection close when the program is closing."""
         # create the websocket
