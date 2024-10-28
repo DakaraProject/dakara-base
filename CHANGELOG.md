@@ -34,9 +34,15 @@
 
 - Support Python 3.12.
 
+### Changed
+
+- Paths are now `pathlib.Path` objects.
+- `directory.directories` is now a `platformdirs.PlatformDirs` object.
+
 ### Removed
 
 - Dropped Python 3.7 support.
+- The `directory.AppDirsPath` class does not exist anymore.
 
 ## 1.4.2 - 2022-11-19
 
