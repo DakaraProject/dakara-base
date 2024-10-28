@@ -27,3 +27,4 @@ repos:
         name: Run ruff linter
         entry: ruff check .
         language: system
+        pass_filenames: false
