@@ -32,7 +32,6 @@ the configuration directory:
 >>> create_config_file("module.resources", "my_config.yaml")
 """
 
-
 import logging
 import shutil
 from collections import UserDict

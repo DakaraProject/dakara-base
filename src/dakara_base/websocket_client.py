@@ -29,7 +29,6 @@ be optained by the `HTTPClient` class from the `http_client` module, with the
 >>> websocket_client.timer.join()
 """
 
-
 import json
 import logging
 from functools import wraps
