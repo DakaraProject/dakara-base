@@ -1,14 +1,8 @@
 import os
-from unittest import TestCase
-from unittest.mock import ANY, MagicMock, PropertyMock, patch
-
-try:
-    from importlib.resources import path
-
-except ImportError:
-    from importlib_resources import path
-
+from importlib.resources import as_file, files
 from pathlib import Path
+from unittest import TestCase
+from unittest.mock import ANY, PropertyMock, patch
 
 from environs import Env
 from platformdirs import PlatformDirs
@@ -165,7 +159,7 @@ class ConfigTestCase(TestCase):
 
         # call the method
         with self.assertLogs("dakara_base.config", "DEBUG") as logger:
-            with path("tests.resources", "config.yaml") as file:
+            with as_file(files("tests.resources").joinpath("config.yaml")) as file:
                 config.load_file(Path(file))
 
         # assert the result
@@ -196,7 +190,7 @@ class ConfigTestCase(TestCase):
 
         # call the method
         with self.assertLogs("dakara_base.config", "DEBUG"):
-            with path("tests.resources", "config.yaml") as file:
+            with as_file(files("tests.resources").joinpath("config.yaml")) as file:
                 with self.assertRaisesRegex(
                     ConfigParseError, "Unable to parse config file"
                 ):
@@ -207,7 +201,7 @@ class ConfigTestCase(TestCase):
         config = Config("DAKARA")
 
         with self.assertLogs("dakara_base.config", "DEBUG"):
-            with path("tests.resources", "config.yaml") as file:
+            with as_file(files("tests.resources").joinpath("config.yaml")) as file:
                 config.load_file(Path(file))
 
         self.assertNotEqual(config.get("key").get("subkey"), "myvalue")
@@ -281,15 +275,6 @@ class SetLoglevelTestCase(TestCase):
         mocked_set_level.assert_called_with("INFO")
 
 
-# fix required for Python 3.8 as you seemingly cannot use an invalid path as a
-# context manager
-def mock_context_manager(return_value):
-    mock = MagicMock()
-    mock.__enter__.return_value = return_value
-
-    return mock
-
-
 @patch("dakara_base.config.shutil.copyfile", autospec=True)
 @patch.object(Path, "exists", autospec=True)
 @patch.object(Path, "mkdir", autospec=True)
@@ -299,16 +284,18 @@ def mock_context_manager(return_value):
     new_callable=PropertyMock(return_value=Path("path") / "to" / "directory"),
 )
 @patch(
-    "dakara_base.config.path",
-    return_value=mock_context_manager(Path("path") / "to" / "source"),
+    "dakara_base.config.as_file",
+    return_value=Path("path") / "to" / "source",
     autospec=True,
 )
+@patch("dakara_base.config.files", autospec=True)
 class CreateConfigFileTestCase(TestCase):
     """Test the config file creator."""
 
     def test_create_empty(
         self,
-        mocked_path,
+        mocked_files,
+        mocked_as_file,
         mocked_user_config_dir,
         mocked_mkdir,
         mocked_exists,
@@ -323,7 +310,8 @@ class CreateConfigFileTestCase(TestCase):
             create_config_file("module.resources", "config.yaml")
 
         # assert the call
-        mocked_path.assert_called_with("module.resources", "config.yaml")
+        mocked_files.assert_called_with("module.resources")
+        mocked_files.return_value.joinpath.assert_called_with("config.yaml")
         mocked_mkdir.assert_called_with(ANY, parents=True, exist_ok=True)
         mocked_exists.assert_called_with(ANY)
         mocked_copyfile.assert_called_with(
@@ -345,7 +333,8 @@ class CreateConfigFileTestCase(TestCase):
     def test_create_existing_no(
         self,
         mocked_input,
-        mocked_path,
+        mocked_files,
+        mocked_as_file,
         mocked_user_config_dir,
         mocked_mkdir,
         mocked_exists,
@@ -371,7 +360,8 @@ class CreateConfigFileTestCase(TestCase):
     def test_create_existing_invalid_input(
         self,
         mocked_input,
-        mocked_path,
+        mocked_files,
+        mocked_as_file,
         mocked_user_config_dir,
         mocked_mkdir,
         mocked_exists,
@@ -392,7 +382,8 @@ class CreateConfigFileTestCase(TestCase):
     def test_create_existing_force(
         self,
         mocked_input,
-        mocked_path,
+        mocked_files,
+        mocked_as_file,
         mocked_user_config_dir,
         mocked_mkdir,
         mocked_exists,

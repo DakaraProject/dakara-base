@@ -35,18 +35,13 @@ the configuration directory:
 import logging
 import shutil
 from collections import UserDict
+from importlib.resources import as_file, files
 
 import coloredlogs
 import progressbar
 import yaml
 import yaml.parser
 from environs import Env, EnvError
-
-try:
-    from importlib.resources import path
-
-except ImportError:
-    from importlib_resources import path
 
 from dakara_base.directory import directories
 from dakara_base.exceptions import DakaraError
@@ -304,7 +299,7 @@ def create_config_file(resource, filename, force=False):
         force (bool): If True, config file in user directory is overwritten if
             it existed already. Otherwise, prompt the user.
     """
-    with path(resource, filename) as origin:
+    with as_file(files(resource).joinpath(filename)) as origin:
         # get the file
         destination = directories.user_config_path / filename
 
