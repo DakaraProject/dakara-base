@@ -2,7 +2,7 @@ import os
 from importlib.resources import as_file, files
 from pathlib import Path
 from unittest import TestCase
-from unittest.mock import ANY, PropertyMock, patch
+from unittest.mock import PropertyMock, patch
 
 from environs import Env
 from platformdirs import PlatformDirs
@@ -312,8 +312,10 @@ class CreateConfigFileTestCase(TestCase):
         # assert the call
         mocked_files.assert_called_with("module.resources")
         mocked_files.return_value.joinpath.assert_called_with("config.yaml")
-        mocked_mkdir.assert_called_with(ANY, parents=True, exist_ok=True)
-        mocked_exists.assert_called_with(ANY)
+        mocked_mkdir.assert_called_with(
+            Path("path/to/directory"), parents=True, exist_ok=True
+        )
+        mocked_exists.assert_called_with(Path("path/to/directory/config.yaml"))
         mocked_copyfile.assert_called_with(
             Path("path") / "to" / "source",
             Path("path") / "to" / "directory" / "config.yaml",
