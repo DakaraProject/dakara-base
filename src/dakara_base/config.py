@@ -33,9 +33,9 @@ the configuration directory:
 """
 
 import logging
-import shutil
 from collections import UserDict
 from importlib.resources import as_file, files
+from shutil import copyfile
 
 import coloredlogs
 import progressbar
@@ -316,7 +316,7 @@ def create_config_file(resource, filename, force=False):
                 return
 
         # copy file
-        shutil.copyfile(origin, destination)
+        copyfile(origin, destination)
         logger.info("Config created in '{}'".format(destination))
 
 

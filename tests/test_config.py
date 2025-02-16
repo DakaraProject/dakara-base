@@ -275,7 +275,7 @@ class SetLoglevelTestCase(TestCase):
         mocked_set_level.assert_called_with("INFO")
 
 
-@patch("dakara_base.config.shutil.copyfile", autospec=True)
+@patch("dakara_base.config.copyfile", autospec=True)
 @patch.object(Path, "exists", autospec=True)
 @patch.object(Path, "mkdir", autospec=True)
 @patch.object(
