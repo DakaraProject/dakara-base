@@ -121,9 +121,11 @@ class ProgressBarTestCase(TestCase):
         # we patch `sys.stderr` as it is risky to work directly on it, and we
         # patch `progressbar.streams.original_stderr` as it is defined at
         # module loading
-        with patch("sys.stderr", stderr), patch(
-            "progressbar.streams.original_stderr", stderr
-        ), wrap_stderr_progressbar():
+        with (
+            patch("sys.stderr", stderr),
+            patch("progressbar.streams.original_stderr", stderr),
+            wrap_stderr_progressbar(),
+        ):
             wrapped_stderr = sys.stderr
 
             # execute the progressbar without exception
@@ -161,9 +163,11 @@ class ProgressBarTestCase(TestCase):
         stderr = StringIO()
         initial_stderr = sys.stderr
 
-        with patch("sys.stderr", stderr), patch(
-            "progressbar.streams.original_stderr", stderr
-        ), wrap_stderr_progressbar():
+        with (
+            patch("sys.stderr", stderr),
+            patch("progressbar.streams.original_stderr", stderr),
+            wrap_stderr_progressbar(),
+        ):
             wrapped_stderr = sys.stderr
 
             # execute the progressbar with an exception
