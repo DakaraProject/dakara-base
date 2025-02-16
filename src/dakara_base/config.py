@@ -317,7 +317,7 @@ def create_config_file(resource, filename, force=False):
 
         # copy file
         copyfile(origin, destination)
-        logger.info("Config created in '{}'".format(destination))
+        logger.info("Config created in '%s'", destination)
 
 
 class ConfigError(DakaraError):
