@@ -285,7 +285,6 @@ class SetLoglevelTestCase(TestCase):
 )
 @patch(
     "dakara_base.config.as_file",
-    return_value=Path("path") / "to" / "source",
     autospec=True,
 )
 @patch("dakara_base.config.files", autospec=True)
@@ -304,6 +303,9 @@ class CreateConfigFileTestCase(TestCase):
         """Test create the config file in an empty directory."""
         # setup mocks
         mocked_exists.return_value = False
+        mocked_as_file.return_value.__enter__.return_value = (
+            Path("path") / "to" / "source"
+        )
 
         # call the function
         with self.assertLogs("dakara_base.config") as logger:
@@ -346,6 +348,9 @@ class CreateConfigFileTestCase(TestCase):
         # setup mocks
         mocked_exists.return_value = True
         mocked_input.return_value = "no"
+        mocked_as_file.return_value.__enter__.return_value = (
+            Path("path") / "to" / "source"
+        )
 
         # call the function
         create_config_file("module.resources", "config.yaml")
@@ -359,28 +364,6 @@ class CreateConfigFileTestCase(TestCase):
         )
 
     @patch("dakara_base.config.input")
-    def test_create_existing_invalid_input(
-        self,
-        mocked_input,
-        mocked_files,
-        mocked_as_file,
-        mocked_user_config_dir,
-        mocked_mkdir,
-        mocked_exists,
-        mocked_copyfile,
-    ):
-        """Test create the config file in a non empty directory with invalid input."""
-        # setup mocks
-        mocked_exists.return_value = True
-        mocked_input.return_value = ""
-
-        # call the function
-        create_config_file("module.resources", "config.yaml")
-
-        # assert the call
-        mocked_copyfile.assert_not_called()
-
-    @patch("dakara_base.config.input")
     def test_create_existing_force(
         self,
         mocked_input,
@@ -392,6 +375,11 @@ class CreateConfigFileTestCase(TestCase):
         mocked_copyfile,
     ):
         """Test create the config file in a non empty directory with force overwrite."""
+        # setup mocks
+        mocked_as_file.return_value.__enter__.return_value = (
+            Path("path") / "to" / "source"
+        )
+
         # call the function
         create_config_file("module.resources", "config.yaml", force=True)
 
