@@ -52,7 +52,7 @@ Issues = "https://github.com/DakaraProject/dakara-base/issues"
 Changelog = "https://github.com/DakaraProject/dakara-base/blob/master/CHANGELOG.md"
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=75.8.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
