@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+## 2.1.0 - 2025-03-06
+
 ### Removed
 
 - Dropped Python 3.8.
