@@ -3,9 +3,11 @@
 # strict mode
 set -eu
 
+PACKAGE_NAME="dakara_base"
+
 # getting version of the package
-version=$(python -c "from dakara_base import __version__; print(__version__)")
-echo "Creating archive for dakara_base v$version"
+version=$(python -c "from $PACKAGE_NAME import __version__; print(__version__)")
+echo "Creating archive for $PACKAGE_NAME v$version"
 
 # install twine
 pip install --upgrade twine build
@@ -17,5 +19,5 @@ rm -rf dist/*
 python -m build
 
 # upload to PyPI
-echo "Package will be uploaded tp Pypi"
-python -m twine upload --repository dakarabase dist/*
+echo "Copy pase the following command (with correct repository) to upload $PACKAGE_NAME v$version to Pypi:"
+echo "  python -m twine upload --repository *** dist/*"
