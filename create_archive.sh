@@ -4,7 +4,7 @@
 set -eu
 
 # getting version of the package
-version=$(python -c "from setuptools import setup; setup()" --version)
+version=$(python -c "from dakara_base import __version__; print(__version__)")
 echo "Creating archive for dakara_base v$version"
 
 # install twine
