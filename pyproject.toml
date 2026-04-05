@@ -42,6 +42,7 @@ dev = [
         "pytest>=9.0.2,<9.1.0",
         "ruff>=0.15.9,<0.16.0",
 ]
+# note: update the build-system section below
 # note: update .pre-commit-config.yaml as well
 
 [project.urls]
@@ -51,7 +52,7 @@ Issues = "https://github.com/DakaraProject/dakara-base/issues"
 Changelog = "https://github.com/DakaraProject/dakara-base/blob/master/CHANGELOG.md"
 
 [build-system]
-requires = ["setuptools>=75.8.2"]
+requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
