@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+- Update dependencies.
+
 ## 2.2.0 - 2026-04-05
 
 ### Removed
