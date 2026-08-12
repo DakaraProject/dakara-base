@@ -22,12 +22,12 @@ classifiers = [
 ]
 dependencies = [
         "coloredlogs>=15.0.1,<15.1.0",
-        "environs>=15.0.0,<15.1.0",
+        "environs>=15.1.0,<15.2.0",
         "furl>=2.1.4,<2.2.0",
-        "platformdirs>=4.9.4,<4.10.0",
+        "platformdirs>=4.11.2,<4.12.0",
         "progressbar2>=4.5.0,<4.6.0",
         "PyYAML>=6.0.3,<6.1",
-        "requests>=2.33.1,<2.34.0",
+        "requests>=2.34.2,<2.35.0",
         "websocket-client>=1.9.0,<1.10.0",
 ]
 
