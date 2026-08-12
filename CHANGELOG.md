@@ -30,6 +30,8 @@
 
 ## Unreleased
 
+## 2.3.0 - 2026-08-12
+
 - Update dependencies.
 
 ## 2.2.0 - 2026-04-05
