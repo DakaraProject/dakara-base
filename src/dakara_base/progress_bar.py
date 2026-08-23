@@ -28,6 +28,7 @@ The text is displayed as a log entry.
 """
 
 import logging
+from typing import Iterator
 
 import progressbar
 from progressbar.widgets import WidgetBase
@@ -46,14 +47,14 @@ class ShrinkableTextWidget(WidgetBase):
         ratio (float): Ratio of screen width to use for text.
     """
 
-    def __init__(self, text, ratio=0.25):
+    def __init__(self, text: str, ratio: float = 0.25):
         super().__init__()
 
         assert len(text) > 5, "Text too short"
         self.text = text
         self.ratio = ratio
 
-    def __call__(self, progress, data):
+    def __call__(self, progress, data) -> str:
         # set widget width to a fraction of terminal width
         width = int(progress.term_width * self.ratio)
 
@@ -66,7 +67,9 @@ class ShrinkableTextWidget(WidgetBase):
         return text.ljust(width)
 
 
-def progress_bar(iterator, *args, text=None, **kwargs):
+def progress_bar(
+    iterator: Iterator, *args, text: str | None = None, **kwargs
+) -> Iterator:
     """Generator that gives the default un-muted progress bar for the project.
 
     It prints an optionnal shrinkable text (if a text is provided), a
@@ -79,7 +82,7 @@ def progress_bar(iterator, *args, text=None, **kwargs):
     Returns:
         generator object: Item handled by the progress bar.
     """
-    widgets = []
+    widgets: list[WidgetBase | str] = kwargs.get("widgets") or []
 
     # add optional text widget
     if text:
@@ -99,12 +102,13 @@ def progress_bar(iterator, *args, text=None, **kwargs):
     )
 
     # create progress bar
-    with progressbar.ProgressBar(*args, widgets=widgets, **kwargs) as progress:
+    kwargs.update({"widgets": widgets})
+    with progressbar.ProgressBar(*args, **kwargs) as progress:
         for item in progress(iterator):
             yield item
 
 
-def null_bar(iterator, *args, text=None, **kwargs):
+def null_bar(iterator: Iterator, *args, text: str | None = None, **kwargs) -> Iterator:
     """Generator that gives the defaylt muted progress bar for the project.
 
     It only logs the optionnal text.
