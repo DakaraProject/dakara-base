@@ -17,6 +17,8 @@ all program exceptions.
 
 import logging
 from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import Callable, Iterator
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +34,9 @@ class DakaraHandledError(Exception):
     """
 
 
-def generate_exception_handler(exception_class, error_message):
+def generate_exception_handler(
+    exception_class: Exception | list[Exception], error_message: str
+) -> Callable:
     """Generate a context manager to take care of given exception.
 
     It will add a custom message to an expected exception class. An exception
@@ -77,6 +81,7 @@ def generate_exception_handler(exception_class, error_message):
     return function
 
 
+@dataclass
 class ExitValue:
     """Container for the exit value.
 
@@ -84,12 +89,13 @@ class ExitValue:
         value (int): Exit value, default to 0.
     """
 
-    def __init__(self):
-        self.value = 0
+    value: int = 0
 
 
 @contextmanager
-def handle_all_exceptions(bugtracker_url, logger=logger, debug=False):
+def handle_all_exceptions(
+    bugtracker_url: str, logger: logging.Logger = logger, debug: bool = False
+) -> Iterator[ExitValue]:
     """Handle all exceptions and yield an exit value.
 
     Unless in debug mode, no exceptions will be raised.
