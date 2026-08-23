@@ -32,7 +32,7 @@ from furl import furl
 from dakara_base.exceptions import DakaraError
 
 
-def truncate_message(message, limit=100):
+def truncate_message(message: str, limit: int = 100) -> str:
     """Display the first characters of a message.
 
     The message is truncated using ellipsis and stripped to avoid blank spaces
@@ -45,7 +45,7 @@ def truncate_message(message, limit=100):
     Returns:
         str: Truncated message.
     """
-    assert limit - 3 > 0, "Limit too short"
+    assert limit > 3, "Limit too short"
 
     if len(message) <= limit:
         return message
@@ -54,16 +54,16 @@ def truncate_message(message, limit=100):
 
 
 def create_url(
-    url="",
-    address="",
-    host="",
-    port=None,
-    path="",
-    ssl=False,
-    scheme_no_ssl="http",
-    scheme_ssl="https",
+    url: str | None = None,
+    address: str | None = None,
+    host: str | None = None,
+    port: int | str | None = None,
+    path: str | None = None,
+    ssl: bool = False,
+    scheme_no_ssl: str = "http",
+    scheme_ssl: str = "https",
     **kwargs,
-):
+) -> str:
     """Create an URL from arguments.
 
     If `url` is given, the function returns it with `path` appended. If no
@@ -92,17 +92,18 @@ def create_url(
     """
     # setting URL directly
     if url:
-        return furl(url).add(path=path).url
+        return furl(url).add(path=path or "").url
 
     # getting host and port indirectly from address
     if not host:
         # try to separete host and port if they are both given in
         # address key in the form host:port
+        address_str = address or ""
         try:
-            host, port = address.split(":")
+            host, port = address_str.split(":")
 
         except ValueError:
-            host = address
+            host = address_str
 
     # getting scheme
     if ssl:

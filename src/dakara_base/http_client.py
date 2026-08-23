@@ -16,7 +16,9 @@ JSON messages.  It is pretty straightforward to use:
 """
 
 import logging
+from dataclasses import InitVar, dataclass, field
 from functools import wraps
+from typing import Callable, ClassVar
 
 import requests
 from furl import furl
@@ -27,7 +29,7 @@ from dakara_base.utils import create_url, truncate_message
 logger = logging.getLogger(__name__)
 
 
-def authenticated(fun):
+def authenticated(fun: Callable) -> Callable:
     """Decorator that ensures the token is set.
 
     It makes sure that the given function is called only if authenticated. If
@@ -50,6 +52,7 @@ def authenticated(fun):
     return call
 
 
+@dataclass
 class HTTPClient:
     """HTTP client designed to work with an API.
 
@@ -80,20 +83,25 @@ class HTTPClient:
             configuration.
     """
 
-    AUTHENTICATE_ENDPOINT = "accounts/login/"
+    AUTHENTICATE_ENDPOINT: ClassVar[str] = "accounts/login/"
+    config: InitVar[dict]
+    endpoint_prefix: InitVar[str] = None
+    mute_raise: bool = False
+    selver_url: str = field(init=False)
+    token: str = field(init=False)
+    login: str = field(init=False)
+    password: str = field(init=False)
 
-    def __init__(self, config, endpoint_prefix="", mute_raise=False):
-        self.mute_raise = mute_raise
-
+    def __post_init__(self, config, endpoint_prefix):
         # url
-        self.server_url = create_url(**config, path=endpoint_prefix)
+        self.server_url = create_url(**config, path=endpoint_prefix or "")
 
         # authentication
         self.token = config.get("token")
         self.login = config.get("login")
         self.password = config.get("password")
 
-    def load(self):
+    def load(self) -> None:
         """Perform side effect actions.
 
         Raises:
@@ -108,13 +116,13 @@ class HTTPClient:
 
     def send_request_raw(
         self,
-        method,
-        endpoint,
+        method: str,
+        endpoint: str,
         *args,
-        message_on_error="",
-        function_on_error=None,
+        message_on_error: str = "",
+        function_on_error: Callable | None = None,
         **kwargs,
-    ):
+    ) -> requests.models.Response:
         """Generic method to send requests to the server.
 
         It takes care of errors and raises exceptions.
@@ -187,7 +195,7 @@ class HTTPClient:
         )
 
     @authenticated
-    def send_request(self, *args, **kwargs):
+    def send_request(self, *args, **kwargs) -> requests.models.Response | None:
         """Generic method to send requests to the server when connected.
 
         It adds token header for authentication and takes care of errors.
@@ -220,7 +228,7 @@ class HTTPClient:
 
             raise
 
-    def get(self, *args, **kwargs):
+    def get(self, *args, **kwargs) -> dict | None:
         """Generic method to get data on server.
 
         Args:
@@ -244,7 +252,7 @@ class HTTPClient:
         """
         return self.get_json_from_response(self.send_request("get", *args, **kwargs))
 
-    def post(self, *args, **kwargs):
+    def post(self, *args, **kwargs) -> dict | None:
         """Generic method to post data on server.
 
         Args:
@@ -269,7 +277,7 @@ class HTTPClient:
         """
         return self.get_json_from_response(self.send_request("post", *args, **kwargs))
 
-    def put(self, *args, **kwargs):
+    def put(self, *args, **kwargs) -> dict | None:
         """Generic method to put data on server.
 
         Args:
@@ -293,7 +301,7 @@ class HTTPClient:
         """
         return self.get_json_from_response(self.send_request("put", *args, **kwargs))
 
-    def patch(self, *args, **kwargs):
+    def patch(self, *args, **kwargs) -> dict | None:
         """Generic method to patch data on server.
 
         Args:
@@ -317,7 +325,7 @@ class HTTPClient:
         """
         return self.get_json_from_response(self.send_request("patch", *args, **kwargs))
 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args, **kwargs) -> dict | None:
         """Generic method to patch data on server.
 
         Args:
@@ -341,7 +349,7 @@ class HTTPClient:
         """
         return self.get_json_from_response(self.send_request("delete", *args, **kwargs))
 
-    def authenticate(self):
+    def authenticate(self) -> None:
         """Authenticate with the server.
 
         The authentication process relies on login/password which gives an
@@ -390,7 +398,7 @@ class HTTPClient:
         logger.debug("Token: %s", self.token)
 
     @authenticated
-    def get_token_header(self):
+    def get_token_header(self) -> dict[str, str]:
         """Get the connection token as it should appear in the header.
 
         Can be called only after a successful authentication.
@@ -401,7 +409,7 @@ class HTTPClient:
         return {"Authorization": "Token " + self.token}
 
     @staticmethod
-    def get_json_from_response(response):
+    def get_json_from_response(response: requests.models.Response) -> dict | None:
         """Parse the response of a request if possible.
 
         Args:
