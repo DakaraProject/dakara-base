@@ -35,7 +35,9 @@ the configuration directory:
 import logging
 from collections import UserDict
 from importlib.resources import as_file, files
+from pathlib import Path
 from shutil import copyfile
+from typing import Any, Type
 
 import coloredlogs
 import progressbar
@@ -56,7 +58,7 @@ logger = logging.getLogger(__name__)
 class AutoEnv(Env):
     """Environment variable reader with an automatic method."""
 
-    def auto(self, type, *args, **kwargs):
+    def auto(self, type: Type, *args, **kwargs) -> Any:
         type_str = type.__name__
         return getattr(self, type_str)(*args, **kwargs)
 
@@ -122,17 +124,17 @@ class Config(UserDict):
         iterable (iterable): Values to store.
     """
 
-    def __init__(self, prefix, iterable=None):
+    def __init__(self, prefix: str, iterable: dict | None = None):
         super().__init__()
 
-        self.prefix = prefix
-        self.env = AutoEnv()
+        self.prefix: str = prefix
+        self.env: AutoEnv = AutoEnv()
 
         # create values in object if any provided
         if iterable:
             self.set_iterable(iterable)
 
-    def set_iterable(self, iterable):
+    def set_iterable(self, iterable: dict) -> None:
         """Set config values from the provided iterable.
 
         Dictionaries will be converted into Config with a sub-prefix.
@@ -154,7 +156,7 @@ class Config(UserDict):
         self.data.clear()
         self.data.update(iterable)
 
-    def set_debug(self, debug=True):
+    def set_debug(self, debug: bool = True) -> None:
         """Set log level of the config to debug.
 
         Args:
@@ -163,7 +165,7 @@ class Config(UserDict):
         if debug:
             self.data["loglevel"] = "DEBUG"
 
-    def check_mandatory_keys(self, keys):
+    def check_mandatory_keys(self, keys: list[str]):
         """Check if a list of keys is present in the config.
 
         Args:
@@ -172,7 +174,7 @@ class Config(UserDict):
         for key in keys:
             self.check_mandatory_key(key)
 
-    def check_mandatory_key(self, key):
+    def check_mandatory_key(self, key: str):
         """Check if a key is present in the config.
 
         Args:
@@ -184,7 +186,7 @@ class Config(UserDict):
         if key not in self.data:
             raise ConfigInvalidError("Invalid config file, missing '{}'".format(key))
 
-    def load_file(self, config_path):
+    def load_file(self, config_path: Path):
         """Load config from a given YAML file.
 
         Args:
@@ -207,7 +209,7 @@ class Config(UserDict):
         except FileNotFoundError as error:
             raise ConfigNotFoundError("No config file found") from error
 
-    def get_value_from_env(self, key, type=None):
+    def get_value_from_env(self, key: str, type: Type | None = None) -> str:
         """Get the value from prefixed upper case environment variable.
 
         Args:
@@ -220,13 +222,13 @@ class Config(UserDict):
         """
         with self.env.prefixed("{}_".format(self.prefix.upper())):
             # use type if provided
-            if type:
+            if type is not None:
                 return self.env.auto(type, key.upper())
 
             # fallback to default behavior
             return self.env(key.upper())
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         # try to get value from environment
         try:
             return self.get_value_from_env(key)
@@ -234,7 +236,7 @@ class Config(UserDict):
         except EnvError:
             return super().__getitem__(key)
 
-    def get(self, key, default=None):
+    def get(self, key: str, default: Any | None = None) -> Any:
         """Return the value for the provided key.
 
         If a default value is provided, it will determine the type of the
@@ -260,7 +262,11 @@ class Config(UserDict):
             return super().get(key, default)
 
 
-def create_logger(wrap=False, custom_log_format=None, custom_log_level=None):
+def create_logger(
+    wrap: bool = False,
+    custom_log_format: str | None = None,
+    custom_log_level: str | None = None,
+) -> None:
     """Create logger.
 
     Args:
@@ -280,7 +286,7 @@ def create_logger(wrap=False, custom_log_format=None, custom_log_level=None):
     coloredlogs.install(fmt=log_format, level=log_level)
 
 
-def set_loglevel(config):
+def set_loglevel(config: dict[str, str]) -> None:
     """Set logger level.
 
     Arguments:
@@ -290,7 +296,7 @@ def set_loglevel(config):
     coloredlogs.set_level(loglevel)
 
 
-def create_config_file(resource, filename, force=False):
+def create_config_file(resource: str, filename: str, force: bool = False) -> None:
     """Create a new config file in user directory.
 
     Args:
