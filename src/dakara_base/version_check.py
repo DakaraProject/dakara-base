@@ -12,14 +12,16 @@ from packaging.version import parse
 logger_default = logging.getLogger(__name__)
 
 
-def check_version(project, version, date, logger=None):
+def check_version(
+    project: str, version: str, date: str, logger: logging.Logger | None = None
+) -> None:
     """Display version number and check if on release.
 
     Args:
         project (str): Name of the project (without "Dakara" prefix).
         version (str): Version of the project.
         date (str): Date of the version.
-        logger (logging.logger): Logger to use, default to this file's logger.
+        logger (logging.Logger): Logger to use, default to this file's logger.
     """
     if logger is None:
         logger = logger_default
