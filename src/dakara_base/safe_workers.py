@@ -31,16 +31,16 @@ True
 
 import logging
 import sys
+from dataclasses import dataclass, field
 from functools import wraps
 from queue import Empty, Queue
 from threading import Event, Thread, Timer
-
-from dakara_base.exceptions import DakaraError
+from typing import Callable, ClassVar, Self, Type
 
 logger = logging.getLogger(__name__)
 
 
-def safe(fun):
+def safe(fun: Callable) -> Callable:
     """Decorator to make the function safe.
 
     Any exception is caught and put in the error queue. This sets the stop
@@ -100,11 +100,7 @@ class BaseSafeThread:
             main thread.
     """
 
-    def __init__(self, stop, errors, *args, **kwargs):
-        # check arguments are valid
-        assert isinstance(stop, Event), "Stop argument must be of type Event"
-        assert isinstance(errors, Queue), "Errors argument must be of type Queue"
-
+    def __init__(self, stop: Event, errors: Queue, *args, **kwargs):
         # assign stop event and error queue
         self.stop = stop
         self.errors = errors
@@ -144,8 +140,6 @@ class SafeThread(BaseSafeThread, Thread):
     Consult the help of `threading.Thread` for more information.
     """
 
-    pass
-
 
 class SafeTimer(BaseSafeThread, Timer):
     """Timer thread executed within a Workes.
@@ -173,9 +167,8 @@ class SafeTimer(BaseSafeThread, Timer):
     Consult the help of `threading.timer` for more information.
     """
 
-    pass
 
-
+@dataclass
 class BaseWorker:
     """Base worker class.
 
@@ -206,20 +199,17 @@ class BaseWorker:
             respectivily Event and Queue.
     """
 
-    def __init__(self, stop, errors):
-        # associate the stop event
-        assert isinstance(stop, Event), "Stop attribute must be of type Event"
-        self.stop = stop
+    stop: Event
+    errors: Queue
 
-        # associate the errors queue
-        assert isinstance(errors, Queue), "Errors attribute must be of type Queue"
-        self.errors = errors
+    def __post_init__(self):
+        # extra actions
+        self.init_worker()
 
-    def init_worker(self):
+    def init_worker(self) -> None:
         """Custom init method stub."""
-        pass
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         """Simple context manager enter.
 
         Just call the custom enter method and returns the instance.
@@ -229,24 +219,22 @@ class BaseWorker:
 
         return self
 
-    def enter_worker(self):
+    def enter_worker(self) -> None:
         """Custom enter method stub."""
-        pass
 
-    def __exit__(self, *args, **kwargs):
-        """Simple context manager exit..
+    def __exit__(self, *args, **kwargs) -> None:
+        """Simple context manager exit.
 
         Just triggers the stop event.
         """
         # notify the stop event
         self.stop.set()
 
-    def exit_worker(self, *args, **kwargs):
+    def exit_worker(self, *args, **kwargs) -> None:
         """Custom exit method stub."""
-        pass
 
-    def create_thread(self, *args, **kwargs):
-        """Helper to easily create a SafeThread object..
+    def create_thread(self, *args, **kwargs) -> SafeThread:
+        """Helper to easily create a SafeThread object.
 
         Args:
             See `threading.Thread`.
@@ -256,8 +244,8 @@ class BaseWorker:
         """
         return SafeThread(self.stop, self.errors, *args, **kwargs)
 
-    def create_timer(self, *args, **kwargs):
-        """Helper to easily create a SafeTimer object..
+    def create_timer(self, *args, **kwargs) -> SafeTimer:
+        """Helper to easily create a SafeTimer object.
 
         Args:
             See `threading.Timer`.
@@ -268,6 +256,7 @@ class BaseWorker:
         return SafeTimer(self.stop, self.errors, *args, **kwargs)
 
 
+@dataclass
 class Worker(BaseWorker):
     """Worker class.
 
@@ -301,13 +290,7 @@ class Worker(BaseWorker):
             main thread.
     """
 
-    def __init__(self, stop, errors, *args, **kwargs):
-        super().__init__(stop, errors)
-
-        # call custom init
-        self.init_worker(*args, **kwargs)
-
-    def __exit__(self, *args, **kwargs):
+    def __exit__(self, *args, **kwargs) -> None:
         """Simple context manager exit.
 
         Just triggers the stop event and call the custom exit method.
@@ -322,6 +305,7 @@ class Worker(BaseWorker):
         logger.debug("Exited worker method (%s)", self.__class__.__name__)
 
 
+@dataclass
 class WorkerSafeTimer(BaseWorker):
     """Worker class with safe timer.
 
@@ -357,22 +341,13 @@ class WorkerSafeTimer(BaseWorker):
             main thread.
     """
 
-    def __init__(self, stop, errors, *args, **kwargs):
-        super().__init__(stop, errors)
+    timer: SafeTimer | None = field(init=False, default=None)
 
-        # create timer for itself
-        def redefine_me():
-            """Dummy function that should not be used."""
-            raise UnredefinedTimerError(
-                "You must redefine the timer of a WorkerSafeTimer"
-            )
+    def set_timer(self, *args, **kwargs) -> None:
+        """Set a timer."""
+        self.timer = self.create_timer(*args, **kwargs)
 
-        self.timer = self.create_timer(0, redefine_me)
-
-        # perform other custom actions
-        self.init_worker(*args, **kwargs)
-
-    def __exit__(self, *args, **kwargs):
+    def __exit__(self, *args, **kwargs) -> None:
         """Worker context manager exit.
 
         Cancels and close the timer thread. It calls the custom context manager
@@ -382,8 +357,8 @@ class WorkerSafeTimer(BaseWorker):
         """
         super().__exit__(*args, **kwargs)
 
-        # exit now if the timer is not running
-        if not self.timer.is_alive():
+        # exit now if the timer is not running or not set
+        if self.timer is None or not self.timer.is_alive():
             return
 
         logger.debug(
@@ -408,6 +383,7 @@ class WorkerSafeTimer(BaseWorker):
         )
 
 
+@dataclass
 class WorkerSafeThread(BaseWorker):
     """Worker class with safe thread.
 
@@ -442,22 +418,13 @@ class WorkerSafeThread(BaseWorker):
             main thread.
     """
 
-    def __init__(self, stop, errors, *args, **kwargs):
-        super().__init__(stop, errors)
+    thread: SafeThread | None = field(init=False, default=None)
 
-        # create thread for itself
-        def redefine_me():
-            """Dummy function that should not be used."""
-            raise UnredefinedThreadError(
-                "You must redefine the thread of a WorkerSafeThread"
-            )
+    def set_thread(self, *args, **kwargs) -> None:
+        """Set a thread."""
+        self.thread = self.create_thread(*args, **kwargs)
 
-        self.thread = self.create_thread(target=redefine_me)
-
-        # perform other custom actions
-        self.init_worker(*args, **kwargs)
-
-    def __exit__(self, *args, **kwargs):
+    def __exit__(self, *args, **kwargs) -> None:
         """Worker context manager exit.
 
         Closes the thread. It calls the custom context manager exit method.
@@ -467,7 +434,7 @@ class WorkerSafeThread(BaseWorker):
         super().__exit__(*args, **kwargs)
 
         # exit now if the thread is not running
-        if not self.thread.is_alive():
+        if self.thread is None or not self.thread.is_alive():
             return
 
         logger.debug(
@@ -489,6 +456,7 @@ class WorkerSafeThread(BaseWorker):
         )
 
 
+@dataclass
 class Runner:
     """Runner class.
 
@@ -508,23 +476,19 @@ class Runner:
             thread.
     """
 
-    POLLING_INTERVAL = 0.5
+    POLLING_INTERVAL: ClassVar[float] = 0.5
 
-    def __init__(self, *args, **kwargs):
-        # create stop event
-        self.stop = Event()
+    stop: Event = field(default_factory=Event)
+    errors: Queue = field(default_factory=Queue)
 
-        # create errors queue
-        self.errors = Queue()
-
+    def __post_init__(self):
         # extra actions
-        self.init_runner(*args, **kwargs)
+        self.init_runner()
 
-    def init_runner(self, *args, **kwargs):
+    def init_runner(self):
         """Custom initialization stub."""
-        pass
 
-    def run_safe(self, WorkerClass, *args, **kwargs):
+    def run_safe(self, worker_class: Type[WorkerSafeThread], *args, **kwargs) -> None:
         """Execute a WorkerSafeThread instance thread.
 
         The thread is executed and the method waits for the stop event to be
@@ -538,9 +502,11 @@ class Runner:
         """
         try:
             # create worker thread
-            with WorkerClass(self.stop, self.errors, *args, **kwargs) as worker:
+            with worker_class(self.stop, self.errors, *args, **kwargs) as worker:
 
                 logger.debug("Create worker thread")
+                print(type(worker))
+                assert worker.thread is not None
                 worker.thread.start()
 
                 # wait for stop event
@@ -575,7 +541,7 @@ class Runner:
             # get the error from the error queue and re-raise it
             # a delay of 5 seconds is accorded for the error to be retrieved
             try:
-                _, error, traceback = self.errors.get(5)
+                _, error, traceback = self.errors.get(timeout=5)
                 error.with_traceback(traceback)
                 raise error
 
@@ -583,22 +549,6 @@ class Runner:
             # this case is very unlikely to happen and is not tested
             except Empty as empty_error:
                 raise NoErrorCaughtError("Unknown error happened") from empty_error
-
-
-class UnredefinedTimerError(DakaraError):
-    """Unredefined timer error.
-
-    Error raised if the default timer of the `WorkerSafeTimer` class has not
-    been redefined.
-    """
-
-
-class UnredefinedThreadError(DakaraError):
-    """Unredefined thread error.
-
-    Error raised if the default thread of the `WorkerSafeTimer` class has not
-    been redefined.
-    """
 
 
 class NoErrorCaughtError(RuntimeError):

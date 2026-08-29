@@ -11,8 +11,6 @@ from dakara_base.safe_workers import (
     Runner,
     SafeThread,
     SafeTimer,
-    UnredefinedThreadError,
-    UnredefinedTimerError,
     Worker,
     WorkerSafeThread,
     WorkerSafeTimer,
@@ -22,8 +20,6 @@ from dakara_base.safe_workers import (
 
 class MyError(Exception):
     """Dummy error class."""
-
-    pass
 
 
 class BaseTestCase(TestCase):
@@ -344,6 +340,9 @@ class WorkerSafeTimerTestCase(BaseTestCase):
             """Function that waits one second."""
             sleep(1)
 
+        def function_error(self):
+            raise MyError("test error")
+
     def test_run_timer_dead(self):
         """Test to end a worker when its timer is dead.
 
@@ -356,7 +355,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
 
         # create and run worker
         with self.WorkerSafeTimerToTest(self.stop, self.errors) as worker:
-            worker.timer = worker.create_timer(0, worker.function_already_dead)
+            worker.set_timer(0, worker.function_already_dead)
             worker.timer.start()
             worker.timer.join()
 
@@ -377,7 +376,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
 
         # create and run worker
         with self.WorkerSafeTimerToTest(self.stop, self.errors) as worker:
-            worker.timer = worker.create_timer(0, worker.function_to_cancel)
+            worker.set_timer(0, worker.function_to_cancel)
             worker.timer.start()
             sleep(0.5)
 
@@ -399,7 +398,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
 
         # create and run worker
         with self.WorkerSafeTimerToTest(self.stop, self.errors) as worker:
-            worker.timer = worker.create_timer(0, worker.function_to_join)
+            worker.set_timer(0, worker.function_to_join)
             worker.timer.start()
             sleep(0.5)
 
@@ -408,8 +407,8 @@ class WorkerSafeTimerTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
         self.assertFalse(worker.timer.is_alive())
 
-    def test_unredifined_timer(self):
-        """Test the timer must be redefined.
+    def test_uninitialized_timer(self):
+        """Test the timer must be initialized.
 
         Test that a worker worker with its default timer does not generate an
         error, but finishes with a triggered stop event and an non-empty error
@@ -420,22 +419,42 @@ class WorkerSafeTimerTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
 
         # create and run worker
-        with self.assertNotRaises(UnredefinedTimerError):
+        with self.assertRaises(AttributeError):
             with self.WorkerSafeTimerToTest(self.stop, self.errors) as worker:
+                worker.timer.start()
+
+        # post assertions
+        self.assertTrue(self.stop.is_set())
+        self.assertTrue(self.errors.empty())
+
+    def test_error_timer(self):
+        """Test the timer with an error callback.
+
+        Test that a worker worker with its default timer does not generate an
+        error, but finishes with a triggered stop event and an non-empty error
+        queue.
+        """
+        # pre assertions
+        self.assertFalse(self.stop.is_set())
+        self.assertTrue(self.errors.empty())
+
+        # create and run worker
+        with self.assertNotRaises(MyError):
+            with self.WorkerSafeTimerToTest(self.stop, self.errors) as worker:
+                worker.set_timer(0, worker.function_error)
                 worker.timer.start()
 
         # post assertions
         self.assertTrue(self.stop.is_set())
         self.assertFalse(self.errors.empty())
         _, error, _ = self.errors.get()
-        self.assertIsInstance(error, UnredefinedTimerError)
+        self.assertIsInstance(error, MyError)
 
 
 class WorkerSafeThreadTestCase(BaseTestCase):
     """Test the WorkerSafeThread class."""
 
     class WorkerSafeThreadToTest(WorkerSafeThread):
-        """Dummy worker class."""
 
         def function_already_dead(self):
             """Function that ends immediately."""
@@ -444,6 +463,10 @@ class WorkerSafeThreadTestCase(BaseTestCase):
         def function_to_join(self):
             """Function that waits one second."""
             sleep(1)
+
+        def function_error(self):
+            """Function that raises an exception."""
+            raise MyError("test error")
 
     def test_run_thread_dead(self):
         """Test to end a worker when its thread is dead.
@@ -457,7 +480,7 @@ class WorkerSafeThreadTestCase(BaseTestCase):
 
         # create and run worker
         with self.WorkerSafeThreadToTest(self.stop, self.errors) as worker:
-            worker.thread = worker.create_thread(target=worker.function_already_dead)
+            worker.set_thread(target=worker.function_already_dead)
             worker.thread.start()
             worker.thread.join()
 
@@ -478,7 +501,7 @@ class WorkerSafeThreadTestCase(BaseTestCase):
 
         # create and run worker
         with self.WorkerSafeThreadToTest(self.stop, self.errors) as worker:
-            worker.thread = worker.create_thread(target=worker.function_to_join)
+            worker.set_thread(target=worker.function_to_join)
             worker.thread.start()
             sleep(0.5)
 
@@ -487,8 +510,8 @@ class WorkerSafeThreadTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
         self.assertFalse(worker.thread.is_alive())
 
-    def test_unredifined_thread(self):
-        """Test the thread must be redefined.
+    def test_uninitialized_thread(self):
+        """Test the thread must be initialized.
 
         Test that a worker worker with its default thread does not generate an
         error, but finishes with a triggered stop event and an non-empty error
@@ -499,15 +522,36 @@ class WorkerSafeThreadTestCase(BaseTestCase):
         self.assertTrue(self.errors.empty())
 
         # create and run worker
-        with self.assertNotRaises(UnredefinedThreadError):
+        with self.assertRaises(AttributeError):
             with self.WorkerSafeThreadToTest(self.stop, self.errors) as worker:
+                worker.thread.start()
+
+        # post assertions
+        self.assertTrue(self.stop.is_set())
+        self.assertTrue(self.errors.empty())
+
+    def test_error_thread(self):
+        """Test the thread with an error.
+
+        Test that a worker worker with its default thread does not generate an
+        error, but finishes with a triggered stop event and an non-empty error
+        queue.
+        """
+        # pre assertions
+        self.assertFalse(self.stop.is_set())
+        self.assertTrue(self.errors.empty())
+
+        # create and run worker
+        with self.assertNotRaises(MyError):
+            with self.WorkerSafeThreadToTest(self.stop, self.errors) as worker:
+                worker.set_thread(target=worker.function_error)
                 worker.thread.start()
 
         # post assertions
         self.assertTrue(self.stop.is_set())
         self.assertFalse(self.errors.empty())
         _, error, _ = self.errors.get()
-        self.assertIsInstance(error, UnredefinedThreadError)
+        self.assertIsInstance(error, MyError)
 
 
 class RunnerTestCase(BaseTestCase):
@@ -517,20 +561,20 @@ class RunnerTestCase(BaseTestCase):
     internal eror.
     """
 
-    class WorkerNormal(Worker):
+    class WorkerNormal(WorkerSafeThread):
         """Dummy worker class."""
 
         def init_worker(self):
-            self.thread = self.create_thread(target=self.test)
+            self.set_thread(target=self.test)
 
         def test(self):
             pass
 
-    class WorkerError(Worker):
+    class WorkerError(WorkerSafeThread):
         """Dummy worker class that will fail."""
 
         def init_worker(self):
-            self.thread = self.create_thread(target=self.test)
+            self.set_thread(target=self.test)
 
         def test(self):
             raise MyError("test error")
