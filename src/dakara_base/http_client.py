@@ -10,9 +10,9 @@ JSON messages.  It is pretty straightforward to use:
 ...     "password": "password here",
 ... }
 >>> client = HTTPClient(config, endpoint_prefix="api/")
->>> client.authenticate()
->>> data = client.get("library/songs/")
->>> client.post("library/songs", json={"title": "some title"})
+>>> client.authenticate()  # doctest: +SKIP
+>>> data = client.get("library/songs/")  # doctest: +SKIP
+>>> client.post("library/songs", json={"title": "some title"})  # doctest: +SKIP
 """
 
 import logging

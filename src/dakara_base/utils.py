@@ -7,7 +7,7 @@ certain limit:
 
 >>> string = "Lorem ipsum dolot sit amet."
 >>> truncate_message(string, limit=15)
-"Lorem ipsum..."
+'Lorem ipsum...'
 
 It was initialy designed to cut Django responses during development, as some
 internal errors could make the server to respond by a very long HTML message,
@@ -24,7 +24,7 @@ as host, port, etc.:
 ...     "path": "api/",
 ... }
 >>> create_url(**config)
-"https://www.example.com:8080/api/"
+'https://www.example.com:8080/api/'
 """
 
 from furl import furl

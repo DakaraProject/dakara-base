@@ -3,9 +3,9 @@
 This module gives application name and project name:
 
 >>> APP_NAME
-... "dakara"
+'dakara'
 >>> PROJECT_NAME
-... "DakaraProject"
+'DakaraProject'
 
 It also gives a preconfigured `platformdirs.PlatformDirs` for Dakara.
 """

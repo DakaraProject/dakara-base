@@ -5,10 +5,13 @@ values from a YAML file and from environment variables:
 
 >>> from pathlib import Path
 >>> config = Config("DAKARA")
->>> config.load_file(Path("path/to/file.yaml"))
+>>> config.set_iterable({"server": {"address": "localhost:8080"}})
+>>> # or let's say you have a file "/path/to/file.yaml"
+>>> config.load_file(Path("path/to/file.yaml"))  # doctest: +SKIP
 >>> config.set_debug()
 >>> config.check_mandatory_key("server")
 >>> config.get("server").get("address")
+'localhost:8080'
 
 The module has two functions to configure loggers: `create_logger`, which
 installs the logger using coloredlogs, and `set_loglevel`, which sets the
@@ -19,7 +22,6 @@ latter one:
 >>> create_logger()
 >>> from pathlib import Path
 >>> config = Config("DAKARA")
->>> config.load_file(Path("path/to/file.yaml"))
 >>> set_loglevel(config)
 
 If you use progress bar and logging at the same time, you should call
@@ -29,7 +31,7 @@ The module has one function to manage Dakara Project config files,
 `create_config_file`, that copies a given config file stored in module resources to
 the configuration directory:
 
->>> create_config_file("module.resources", "my_config.yaml")
+>>> create_config_file("module.resources", "my_config.yaml")  # doctest: +SKIP
 """
 
 import logging
@@ -80,27 +82,27 @@ class Config(UserDict):
 
     >>> from pathlib import Path
     >>> conf = Config("prefix")
-    >>> conf.load_file(Path("config.yaml"))
+    >>> conf.load_file(Path("config.yaml"))  # doctest: +SKIP
 
     When checking environment variables, the looked up variable name is
     prefixed and made upper-case.
 
     >>> conf = Config("prefix", {"key1": "foo", "key2": "bar"})
     >>> conf
-    {"key1": "foo", "key2": "bar"}
+    {'key1': 'foo', 'key2': 'bar'}
     >>> conf.get("key1")
-    "foo"
+    'foo'
     >>> # let's say PREFIX_KEY2 is an environment variable with value "spam"
-    >>> conf.get("key2")
-    "spam"
+    >>> conf.get("key2")  # doctest: +SKIP
+    'spam'
 
     Values of nested `Config` objects will have accumulated prefixes
     (separated by an underscore):
 
     >>> conf = Config("prefix", {"sub": {"key": "foo"}})
     >>> # let's say PREFIX_SUB_KEY is an environment variable with value "bar"
-    >>> cong.get("sub").get("key")
-    "bar"
+    >>> cong.get("sub").get("key")  # doctest: +SKIP
+    'bar'
 
     By default, the value obtained from the environment is a string. If a
     default value is provided to `get`, the returned value from the environment
@@ -108,9 +110,9 @@ class Config(UserDict):
 
     >>> conf = Config("prefix", {"key": 42})
     >>> # let's say PREFIX_KEY is an environment variable with value "39"
-    >>> conf.get("key")
-    "39"
-    >>> cong.get("key", 0)
+    >>> conf.get("key")  # doctest: +SKIP
+    '39'
+    >>> cong.get("key", 0)  # doctest: +SKIP
     39
 
     You can check `environs.Env` for the supported types. Note stored values

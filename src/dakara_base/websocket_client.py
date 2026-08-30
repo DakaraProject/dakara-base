@@ -5,7 +5,7 @@ websocket_client library. The class is designed to work with servers sending
 JSON messages. The message received from the server must be handled by custom
 methods, consequently the class cannot be used directly:
 
->>> MyWebSocketClient(WebSocketClient):
+>>> class MyWebSocketClient(WebSocketClient):
 ...     def receive_new_song(self, data):
 ...         pass
 
@@ -13,7 +13,7 @@ The websocket client uses a token to authenticate to the server. The token can
 be optained by the `HTTPClient` class from the `http_client` module, with the
 `get_token_header` method. The client is a bit complex to setup:
 
->>> from theading import Event
+>>> from threading import Event
 >>> from queue import Queue
 >>> stop = Event()
 >>> errors = Queue()

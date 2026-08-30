@@ -52,10 +52,8 @@ def generate_exception_handler(
     ...     with handle_my_error():
     ...         raise MyError("initial message")
     ... except MyError as error:
-    ...     pass
-    >>> assert str(error).split() == ["initial message", "extra message"]
-    >>> assert isinstance(error, MyError)
-    >>> assert isinstance(error, DakaraHandledError)
+    ...     str(error).splitlines()
+    ['initial message', 'extra message']
 
     Args:
         exception_class: Exception class to catch.
@@ -99,10 +97,12 @@ def handle_all_exceptions(
 
     >>> import sys
     >>> with handle_all_exceptions(
-    ...    "https://www.example.com/bugtracker"
+    ...     "https://www.example.com/bugtracker"
     ... ) as exit_value:
-    ...    # your program here
-    >>> sys.exit(exit_value.value)
+    ...     # your program here
+    ...     pass
+    >>> exit_value.value
+    0
 
     Args:
         bugtracker_url: URL address of the bugtracker, displayed on unexpected
