@@ -37,6 +37,14 @@ pytest
 Both Pytest style and standard Unittest style tests can be used.
 Coverage is checked automatically with [Pytest-cov](https://pypi.org/project/pytest-cov/).
 
+### Typing
+
+The project uses Python annotations for typing ([PEP 481](https://peps.python.org/pep-0484/)), which are checkd with [mypy](https://mypy-lang.org/) with the command:
+
+```sh
+mypy src/dakara_base
+```
+
 ### Imports
 
 Imports are sorted by [isort](https://pycqa.github.io/isort/) with the command:
