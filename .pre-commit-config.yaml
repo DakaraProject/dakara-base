@@ -16,7 +16,7 @@ repos:
         pass_filenames: false
       - id: mypy-check
         name: check typing
-        entry: mypy src/dakara_base --check
+        entry: mypy src --check
         language: system
         pass_filenames: false
       - id: isort-check
