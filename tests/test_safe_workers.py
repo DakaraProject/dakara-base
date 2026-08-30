@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from queue import Queue
-from threading import Event, Timer
+from threading import Event
 from time import sleep
 from unittest import TestCase
 from unittest.mock import MagicMock
@@ -288,9 +288,9 @@ class WorkerTestCase(BaseTestCase):
 
         # create and run worker
         with Worker(self.stop, self.errors) as worker:
-            worker.thread = worker.create_thread(target=self.function_safe)
-            worker.thread.start()
-            worker.thread.join()
+            thread = worker.create_thread(target=self.function_safe)
+            thread.start()
+            thread.join()
 
         # post assertions
         self.assertTrue(self.stop.is_set())
@@ -310,9 +310,9 @@ class WorkerTestCase(BaseTestCase):
         # create and run worker
         with self.assertNotRaises(MyError):
             with Worker(self.stop, self.errors) as worker:
-                worker.thread = worker.create_thread(target=self.function_error)
-                worker.thread.start()
-                worker.thread.join()
+                thread = worker.create_thread(target=self.function_error)
+                thread.start()
+                thread.join()
 
         # post assertions
         self.assertTrue(self.stop.is_set())
@@ -333,7 +333,8 @@ class WorkerSafeTimerTestCase(BaseTestCase):
 
         def function_to_cancel(self):
             """Function that calls itself in loop every second."""
-            self.timer = Timer(1, self.function_to_cancel)
+            self.set_timer(1, self.function_to_cancel)
+            assert self.timer is not None
             self.timer.start()
 
         def function_to_join(self):
@@ -356,6 +357,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
         # create and run worker
         with self.WorkerSafeTimerToTest(self.stop, self.errors) as worker:
             worker.set_timer(0, worker.function_already_dead)
+            assert worker.timer is not None
             worker.timer.start()
             worker.timer.join()
 
@@ -377,6 +379,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
         # create and run worker
         with self.WorkerSafeTimerToTest(self.stop, self.errors) as worker:
             worker.set_timer(0, worker.function_to_cancel)
+            assert worker.timer is not None
             worker.timer.start()
             sleep(0.5)
 
@@ -399,6 +402,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
         # create and run worker
         with self.WorkerSafeTimerToTest(self.stop, self.errors) as worker:
             worker.set_timer(0, worker.function_to_join)
+            assert worker.timer is not None
             worker.timer.start()
             sleep(0.5)
 
@@ -442,6 +446,7 @@ class WorkerSafeTimerTestCase(BaseTestCase):
         with self.assertNotRaises(MyError):
             with self.WorkerSafeTimerToTest(self.stop, self.errors) as worker:
                 worker.set_timer(0, worker.function_error)
+                assert worker.timer is not None
                 worker.timer.start()
 
         # post assertions
@@ -481,6 +486,7 @@ class WorkerSafeThreadTestCase(BaseTestCase):
         # create and run worker
         with self.WorkerSafeThreadToTest(self.stop, self.errors) as worker:
             worker.set_thread(target=worker.function_already_dead)
+            assert worker.thread is not None
             worker.thread.start()
             worker.thread.join()
 
@@ -502,6 +508,7 @@ class WorkerSafeThreadTestCase(BaseTestCase):
         # create and run worker
         with self.WorkerSafeThreadToTest(self.stop, self.errors) as worker:
             worker.set_thread(target=worker.function_to_join)
+            assert worker.thread is not None
             worker.thread.start()
             sleep(0.5)
 
@@ -545,6 +552,7 @@ class WorkerSafeThreadTestCase(BaseTestCase):
         with self.assertNotRaises(MyError):
             with self.WorkerSafeThreadToTest(self.stop, self.errors) as worker:
                 worker.set_thread(target=worker.function_error)
+                assert worker.thread is not None
                 worker.thread.start()
 
         # post assertions

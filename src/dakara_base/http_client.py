@@ -18,7 +18,7 @@ JSON messages.  It is pretty straightforward to use:
 import logging
 from dataclasses import InitVar, dataclass, field
 from functools import wraps
-from typing import Callable, ClassVar
+from typing import Any, Callable, ClassVar
 
 import requests
 from furl import furl
@@ -43,7 +43,7 @@ def authenticated(fun: Callable) -> Callable:
     """
 
     @wraps(fun)
-    def call(self, *args, **kwargs):
+    def call(self, *args, **kwargs) -> Any:
         if self.token is None:
             raise NotAuthenticatedError("No connection established")
 
@@ -92,7 +92,7 @@ class HTTPClient:
     login: str = field(init=False)
     password: str = field(init=False)
 
-    def __post_init__(self, config, endpoint_prefix):
+    def __post_init__(self, config, endpoint_prefix) -> None:
         # url
         self.server_url = create_url(**config, path=endpoint_prefix or "")
 
@@ -368,7 +368,7 @@ class HTTPClient:
 
         data = {"login": self.login, "password": self.password}
 
-        def on_error(response):
+        def on_error(response) -> AuthenticationError:
             # manage failed connection response
             if response.status_code == 400:
                 return AuthenticationError(
@@ -409,7 +409,9 @@ class HTTPClient:
         return {"Authorization": "Token " + self.token}
 
     @staticmethod
-    def get_json_from_response(response: requests.models.Response) -> dict | None:
+    def get_json_from_response(
+        response: requests.models.Response | None,
+    ) -> dict | None:
         """Parse the response of a request if possible.
 
         Args:
@@ -419,7 +421,7 @@ class HTTPClient:
             dict: Parsed response. None if no response was given or response
             has no content.
         """
-        if response and response.text:
+        if response is not None and response.text:
             return response.json()
 
         return None

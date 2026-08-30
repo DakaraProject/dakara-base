@@ -28,7 +28,7 @@ The text is displayed as a log entry.
 """
 
 import logging
-from typing import Iterator
+from typing import Iterable
 
 import progressbar
 from progressbar.widgets import WidgetBase
@@ -47,7 +47,7 @@ class ShrinkableTextWidget(WidgetBase):
         ratio (float): Ratio of screen width to use for text.
     """
 
-    def __init__(self, text: str, ratio: float = 0.25):
+    def __init__(self, text: str, ratio: float = 0.25) -> None:
         super().__init__()
 
         assert len(text) > 5, "Text too short"
@@ -68,15 +68,15 @@ class ShrinkableTextWidget(WidgetBase):
 
 
 def progress_bar(
-    iterator: Iterator, *args, text: str | None = None, **kwargs
-) -> Iterator:
+    iterator: Iterable, *args, text: str | None = None, **kwargs
+) -> Iterable:
     """Generator that gives the default un-muted progress bar for the project.
 
     It prints an optionnal shrinkable text (if a text is provided), a
     percentage progress, a progress bar and an adaptative ETA.
 
     Args:
-        iterator (iterator): Iterator of items to use the bar with.
+        iterator (iterator): Iterable of items to use the bar with.
         text (str): Text to display describing the current operation.
 
     Returns:
@@ -108,13 +108,13 @@ def progress_bar(
             yield item
 
 
-def null_bar(iterator: Iterator, *args, text: str | None = None, **kwargs) -> Iterator:
+def null_bar(iterator: Iterable, *args, text: str | None = None, **kwargs) -> Iterable:
     """Generator that gives the defaylt muted progress bar for the project.
 
     It only logs the optionnal text.
 
     Args:
-        iterator (iterator): Iterator of items to use the bar with.
+        iterator (iterator): Iterable of items to use the bar with.
         text (str): Text to log describing the current operation.
 
     Returns:

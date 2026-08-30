@@ -35,7 +35,7 @@ from dataclasses import dataclass, field
 from functools import wraps
 from queue import Empty, Queue
 from threading import Event, Thread, Timer
-from typing import Callable, ClassVar, Self, Type
+from typing import Any, Callable, ClassVar, Self, Type
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ def safe(fun: Callable) -> Callable:
     """
 
     @wraps(fun)
-    def call(self, *args, **kwargs):
+    def call(self, *args, **kwargs) -> Any:
         # check the target's class is a safe thread or a safe worker
         assert isinstance(self, (BaseSafeThread, BaseWorker)), (
             "The class '{}' of method '{}' is not a "
@@ -100,18 +100,13 @@ class BaseSafeThread:
             main thread.
     """
 
-    def __init__(self, stop: Event, errors: Queue, *args, **kwargs):
+    def __init__(self, stop: Event, errors: Queue, *args, **kwargs) -> None:
         # assign stop event and error queue
         self.stop = stop
         self.errors = errors
 
         # specific initialization
         super().__init__(*args, **kwargs)
-
-    @safe
-    def run(self):
-        """Method to run as a thread safely."""
-        return super().run()
 
 
 class SafeThread(BaseSafeThread, Thread):
@@ -140,6 +135,11 @@ class SafeThread(BaseSafeThread, Thread):
     Consult the help of `threading.Thread` for more information.
     """
 
+    @safe
+    def run(self) -> Any:
+        """Method to run as a thread safely."""
+        return super().run()
+
 
 class SafeTimer(BaseSafeThread, Timer):
     """Timer thread executed within a Workes.
@@ -166,6 +166,11 @@ class SafeTimer(BaseSafeThread, Timer):
 
     Consult the help of `threading.timer` for more information.
     """
+
+    @safe
+    def run(self) -> Any:
+        """Method to run as a thread safely."""
+        return super().run()
 
 
 @dataclass
@@ -202,7 +207,7 @@ class BaseWorker:
     stop: Event
     errors: Queue
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # extra actions
         self.init_worker()
 
@@ -481,11 +486,11 @@ class Runner:
     stop: Event = field(default_factory=Event)
     errors: Queue = field(default_factory=Queue)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # extra actions
         self.init_runner()
 
-    def init_runner(self):
+    def init_runner(self) -> None:
         """Custom initialization stub."""
 
     def run_safe(self, worker_class: Type[WorkerSafeThread], *args, **kwargs) -> None:

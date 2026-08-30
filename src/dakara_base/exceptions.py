@@ -18,16 +18,16 @@ all program exceptions.
 import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Callable, Iterator
+from typing import Callable, Collection, Iterator, Type
 
 logger = logging.getLogger(__name__)
 
 
-class DakaraError(Exception):
+class DakaraError(BaseException):
     """Basic exception class for the project."""
 
 
-class DakaraHandledError(Exception):
+class DakaraHandledError(BaseException):
     """Basic exception class for errors that have been handled.
 
     Must be used in multiple inheritance.
@@ -35,7 +35,8 @@ class DakaraHandledError(Exception):
 
 
 def generate_exception_handler(
-    exception_class: Exception | list[Exception], error_message: str
+    exception_class: Type[BaseException] | Collection[Type[BaseException]],
+    error_message: str,
 ) -> Callable:
     """Generate a context manager to take care of given exception.
 
@@ -67,13 +68,13 @@ def generate_exception_handler(
     """
 
     @contextmanager
-    def function():
+    def function() -> Iterator[None]:
         try:
             yield None
 
-        except exception_class as error:
+        except exception_class as error:  # type: ignore
 
-            class HandledError(error.__class__, DakaraHandledError):
+            class HandledError(type(error), DakaraHandledError):  # type: ignore
                 pass
 
             raise HandledError("{}\n{}".format(error, error_message)) from error

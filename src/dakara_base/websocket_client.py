@@ -65,7 +65,7 @@ def connected(fun: Callable) -> Callable:
     """
 
     @wraps(fun)
-    def call(self, *args, **kwargs):
+    def call(self, *args, **kwargs) -> Any:
         if self.websocket is None:
             raise NotConnectedError("No connection established")
 
@@ -123,7 +123,7 @@ class WebSocketClient(WorkerSafeTimer):
     reconnect_interval: int = field(init=False)
     callbacks: dict[str, Callable] = field(init=False, default_factory=dict)
 
-    def __post_init__(self, config, endpoint):
+    def __post_init__(self, config, endpoint) -> None:
         # url
         self.server_url = create_url(
             **config, path=endpoint or "", scheme_no_ssl="ws", scheme_ssl="wss"

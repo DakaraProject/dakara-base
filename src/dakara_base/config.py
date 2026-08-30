@@ -124,7 +124,7 @@ class Config(UserDict):
         iterable (iterable): Values to store.
     """
 
-    def __init__(self, prefix: str, iterable: dict | None = None):
+    def __init__(self, prefix: str, iterable: dict | None = None) -> None:
         super().__init__()
 
         self.prefix: str = prefix
@@ -165,7 +165,7 @@ class Config(UserDict):
         if debug:
             self.data["loglevel"] = "DEBUG"
 
-    def check_mandatory_keys(self, keys: list[str]):
+    def check_mandatory_keys(self, keys: list[str]) -> None:
         """Check if a list of keys is present in the config.
 
         Args:
@@ -174,7 +174,7 @@ class Config(UserDict):
         for key in keys:
             self.check_mandatory_key(key)
 
-    def check_mandatory_key(self, key: str):
+    def check_mandatory_key(self, key: str) -> None:
         """Check if a key is present in the config.
 
         Args:
@@ -186,7 +186,7 @@ class Config(UserDict):
         if key not in self.data:
             raise ConfigInvalidError("Invalid config file, missing '{}'".format(key))
 
-    def load_file(self, config_path: Path):
+    def load_file(self, config_path: Path) -> None:
         """Load config from a given YAML file.
 
         Args:
