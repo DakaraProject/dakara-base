@@ -376,7 +376,6 @@ class Runner:
             with worker_class(self.stop, self.errors, *args, **kwargs) as worker:
 
                 logger.debug("Create worker thread")
-                print(type(worker))
                 assert worker.thread is not None
                 worker.thread.start()
 
