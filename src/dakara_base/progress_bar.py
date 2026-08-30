@@ -41,18 +41,17 @@ class ShrinkableTextWidget(WidgetBase):
 
     It contains a descriptive text using by default one quarter of the screen
     width, which can be truncated by the middle if it does not fit.
-
-    Args:
-        text (str): Text to display on screen.
-        ratio (float): Ratio of screen width to use for text.
     """
 
     def __init__(self, text: str, ratio: float = 0.25) -> None:
         super().__init__()
 
         assert len(text) > 5, "Text too short"
-        self.text = text
-        self.ratio = ratio
+        self.text: str = text
+        """Text to display on screen."""
+
+        self.ratio: float = ratio
+        """Ratio of screen width to use for text."""
 
     def __call__(self, progress, data) -> str:
         # set widget width to a fraction of terminal width
@@ -70,17 +69,17 @@ class ShrinkableTextWidget(WidgetBase):
 def progress_bar(
     iterator: Iterable, *args, text: str | None = None, **kwargs
 ) -> Iterable:
-    """Generator that gives the default un-muted progress bar for the project.
+    """Iterable that gives the default un-muted progress bar for the project.
 
     It prints an optionnal shrinkable text (if a text is provided), a
     percentage progress, a progress bar and an adaptative ETA.
 
     Args:
-        iterator (iterator): Iterable of items to use the bar with.
-        text (str): Text to display describing the current operation.
+        iterator: Iterable of items to use the bar with.
+        text: Text to display describing the current operation.
 
     Returns:
-        generator object: Item handled by the progress bar.
+        Item handled by the progress bar.
     """
     widgets: list[WidgetBase | str] = kwargs.get("widgets") or []
 
@@ -109,16 +108,16 @@ def progress_bar(
 
 
 def null_bar(iterator: Iterable, *args, text: str | None = None, **kwargs) -> Iterable:
-    """Generator that gives the defaylt muted progress bar for the project.
+    """Iterable that gives the defaylt muted progress bar for the project.
 
     It only logs the optionnal text.
 
     Args:
-        iterator (iterator): Iterable of items to use the bar with.
-        text (str): Text to log describing the current operation.
+        iterator: Iterable of items to use the bar with.
+        text: Text to log describing the current operation.
 
     Returns:
-        generator object: Item handled by the progress bar.
+        Item handled by the progress bar.
     """
     # log text immediately
     if text:

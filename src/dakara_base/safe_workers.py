@@ -91,58 +91,26 @@ class BaseSafeThread:
 
     This mechanism allows to completely stop the execution of the program if an
     exception has been raised in a sub-thread. The excetpion is not shown on
-    screen but passed to the main thread.
+    screen but passed to the main thread through the errors queue.
 
     This class is abstract and must be inherited with either `theading.Thread`
     or `threading.Timer`.
-
-    Attributes:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-
-    Args:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
     """
 
     def __init__(self, stop: Event, errors: Queue, *args, **kwargs) -> None:
         # assign stop event and error queue
-        self.stop = stop
-        self.errors = errors
+        self.stop: Event = stop
+        """Stop event that notify to stop the entire program when set."""
+
+        self.errors: Queue = errors
+        """Error queue to communicate the exception to the main thread."""
 
         # specific initialization
         super().__init__(*args, **kwargs)
 
 
 class SafeThread(BaseSafeThread, Thread):
-    """Thread executed within a Worker.
-
-    The thread is connected to the stop event and the errors queue. In case of
-    failure from the threaded function, the stop event is set and the exception
-    is put in the error queue. The thread closes immediatlely.
-
-    This mechanism allows to completely stop the execution of the program if an
-    exception has been raised in a sub-thread. The excetpion is not shown on
-    screen but passed to the main thread.
-
-    Attributes:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-
-    Args:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-
-    Consult the help of `threading.Thread` for more information.
-    """
+    """Thread executed within a Worker."""
 
     @safe
     def run(self) -> Any:
@@ -151,30 +119,7 @@ class SafeThread(BaseSafeThread, Thread):
 
 
 class SafeTimer(BaseSafeThread, Timer):
-    """Timer thread executed within a Workes.
-
-    The timer thread is connected to the stop event and the errors queue. In
-    case of failure from the threaded function, the stop event is set and the
-    exception is put in the error queue. The timer thread closes immediatlely.
-
-    This mechanism allows to completely stop the execution of the program if an
-    exception has been raised in a timer sub-thread. The excetpion is not shown
-    on screen but passed to the main thread.
-
-    Attributes:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-
-    Args:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-
-    Consult the help of `threading.timer` for more information.
-    """
+    """Timer thread executed within a Worker."""
 
     @safe
     def run(self) -> Any:
@@ -196,32 +141,27 @@ class BaseWorker:
     New threads should be created with the `create_thread` method and new
     thread timers with the `create_timer` method.
 
-    Attributes:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
+    Extra actions for initialization should be put in the `init_worker` method.
 
-    Args:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-
-    Raises:
-        AssertionError: If the `stop` or `errors` arguments are not
-            respectivily Event and Queue.
+    Extra actions for context manager enter and exit should be put in the
+    `enter_worker` and `exit_worker` methods.
     """
 
     stop: Event
+    """Stop event that notify to stop the entire program when set."""
+
     errors: Queue
+    """Error queue to communicate the exception to the main thread."""
 
     def __post_init__(self) -> None:
         # extra actions
         self.init_worker()
 
     def init_worker(self) -> None:
-        """Custom init method stub."""
+        """Custom init method stub.
+
+        This method is always called when initializing a class instance.
+        """
 
     def __enter__(self) -> Self:
         """Simple context manager enter.
@@ -248,61 +188,31 @@ class BaseWorker:
         """Custom exit method stub."""
 
     def create_thread(self, *args, **kwargs) -> SafeThread:
-        """Helper to easily create a SafeThread object.
+        """Helper to easily create a `SafeThread` object.
 
         Args:
             See `threading.Thread`.
 
         Returns:
-            SafeThread: Secured thread instance.
+            Secured thread instance.
         """
         return SafeThread(self.stop, self.errors, *args, **kwargs)
 
     def create_timer(self, *args, **kwargs) -> SafeTimer:
-        """Helper to easily create a SafeTimer object.
+        """Helper to easily create a `SafeTimer` object.
 
         Args:
             See `threading.Timer`.
 
         Returns:
-            SafeTimer: Secured timer thread instance.
+            Secured timer thread instance.
         """
         return SafeTimer(self.stop, self.errors, *args, **kwargs)
 
 
 @dataclass
 class Worker(BaseWorker):
-    """Worker class.
-
-    The worker is bound to a stop event which when triggered will stop the
-    program. It also has an errors queue to communicate errors to the main
-    thread.
-
-    It behaves like a context manager that returns itself on enter and triggers
-    the stop event on exit.
-
-    New threads should be created with the `create_thread` method and new
-    thread timers with the `create_timer` method.
-
-    Extra actions for context manager enter and exit should be put in the
-    `enter_worker` and `exit_worker` methods.
-
-    Initialization must be performed through the `init_worker` method. The
-    initialization assigns the mandatory stop event and errors queue to the
-    instance and calls the custom init method.
-
-    Attributes:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-
-    Args:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-    """
+    """Worker class."""
 
     def __exit__(self, *args, **kwargs) -> None:
         """Simple context manager exit.
@@ -321,44 +231,17 @@ class Worker(BaseWorker):
 
 @dataclass
 class WorkerSafeTimer(BaseWorker):
-    """Worker class with safe timer.
-
-    The worker class with safe timer is bound to a stop event which when
-    triggered will stop the program. It also has an errors queue to communicate
-    errors to the main thread.
-
-    It contains a timer thread `timer` connected to a dummy function which must
-    be redefined. New thread timers should be created with the `create_timer`
-    method.
-
-    It behaves like a context manager that gives itself on enter. On exit, it
-    cancels and ends its timer thread and also triggers the stop event.
-
-    Extra actions for context manager enter and exit should be put in the
-    `enter_worker` and `exit_worker` methods.
-
-    Initialization must be performed through the `init_worker` method.  The
-    initialization assigns its own timer thread to the instance and makes it
-    target a dummy method.
-
-    Attributes:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-        timer (SafeTimer): Timer thread that must be redefined.
-
-    Args:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-    """
+    """Worker class with safe timer."""
 
     timer: SafeTimer | None = field(init=False, default=None)
+    """Timer thread that must be defined before use."""
 
     def set_timer(self, *args, **kwargs) -> None:
-        """Set a timer."""
+        """Set a timer.
+
+        Args:
+            See `BaseWorker.create_timer`.
+        """
         self.timer = self.create_timer(*args, **kwargs)
 
     def __exit__(self, *args, **kwargs) -> None:
@@ -400,42 +283,19 @@ class WorkerSafeTimer(BaseWorker):
 @dataclass
 class WorkerSafeThread(BaseWorker):
     """Worker class with safe thread.
-
-    The worker class with safe thread is bound to a stop event which when
-    triggered will stop the program. It also has an errors queue to communicate
-    errors to the main thread.
-
-    It contains a thread `thread` connected to a dummy function which must de
-    redefined. New threads should be created with the `create_thread` method.
-
-    The instance is a context manager that gives itself on enter. On exit, it
-    ends its own thread and also triggers the stop event.
-
     Extra actions for context manager enter and exit should be put in the
     `enter_worker` and `exit_worker` methods.
-
-    Initialisation must be performed through the `init_worker` method. The
-    initialization assigns its own thread to the instance and makes it target a
-    dummy method.
-
-    Attributes:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
-        thread (SafeThread): Thread bound to the `run` method.
-
-    Args:
-        stop (threading.Event): Stop event that notify to stop the entire
-            program when set.
-        errors (queue.Queue): Error queue to communicate the exception to the
-            main thread.
     """
 
     thread: SafeThread | None = field(init=False, default=None)
+    """Thread that must be defined before use."""
 
     def set_thread(self, *args, **kwargs) -> None:
-        """Set a thread."""
+        """Set a thread.
+
+        Args:
+            See `BaseWorker.create_thread`.
+        """
         self.thread = self.create_thread(*args, **kwargs)
 
     def __exit__(self, *args, **kwargs) -> None:
@@ -476,24 +336,22 @@ class Runner:
 
     The runner creates the stop event and errors queue. It is designed to
     execute the thread of a `WorkerSafeThread` instance until an error occurs
-    or an user interruption pops out (Ctrl+C).
+    or a user interruption pops out (Ctrl+C).
 
-    The initialization creates the stop event and the errors queue and calls
-    the custom init method.
-
-    Attributes:
-        POLLING_INTERVAL (float): For Windows only, interval between two
-            attempts to wait for the stop event.
-        stop (threading.Event): Stop event that notify to stop the execution of
-            the thread.
-        errors (queue.Queue): Error queue to communicate the exception of the
-            thread.
+    Extra actions for initialization should be put in the
+    `init_runner` method.
     """
 
     POLLING_INTERVAL: ClassVar[float] = 0.5
+    """For Windows only, interval between two attempts to wait for the stop
+    event.
+    """
 
     stop: Event = field(default_factory=Event)
+    """Stop event that notify to stop the execution of the thread."""
+
     errors: Queue = field(default_factory=Queue)
+    """Error queue to communicate the exception of the thread."""
 
     def __post_init__(self) -> None:
         # extra actions
@@ -509,10 +367,9 @@ class Runner:
         set or a user interruption to be triggered (Ctrl+C).
 
         Args:
-            WorkerClass (WorkerSafeThread): Worker class with safe thread.
-                Note you have to pass a custom class based on
-                `WorkerSafeThread`.
-            Other arguments are passed to the thread of WorkerClass.
+            worker_class: Worker class with safe thread. Note you have to pass
+                a custom class based on `WorkerSafeThread`.
+            Other arguments are passed to `worker_class`.
         """
         try:
             # create worker thread

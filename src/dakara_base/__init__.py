@@ -12,7 +12,7 @@ from dakara_base import (
     progress_bar,
     safe_workers,
     utils,
-    version,
+    version_check,
     websocket_client,
 )
 from dakara_base.version import __date__, __version__
@@ -25,7 +25,7 @@ __all__ = [
     "progress_bar",
     "safe_workers",
     "utils",
-    "version",
+    "version_check",
     "websocket_client",
     "__version__",
     "__date__",

@@ -18,10 +18,10 @@ def check_version(
     """Display version number and check if on release.
 
     Args:
-        project (str): Name of the project (without "Dakara" prefix).
-        version (str): Version of the project.
-        date (str): Date of the version.
-        logger (logging.Logger): Logger to use, default to this file's logger.
+        project: Name of the project (without "Dakara" prefix).
+        version: Version of the project.
+        date: Date of the version.
+        logger: Logger to use, default to this file's logger.
     """
     if logger is None:
         logger = logger_default

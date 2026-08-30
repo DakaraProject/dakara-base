@@ -39,11 +39,11 @@ def truncate_message(message: str, limit: int = 100) -> str:
     before the ellipsis.
 
     Args:
-        message (str): Message to truncate.
-        limit (int): Maximum size of the message.
+        message: Message to truncate.
+        limit: Maximum size of the message.
 
     Returns:
-        str: Truncated message.
+        Truncated message.
     """
     assert limit > 3, "Limit too short"
 
@@ -73,18 +73,18 @@ def create_url(
     the URL.
 
     Args:
-        url (str): Direct URL.
+        url: Direct URL.
         address (str): Host, or host and port.
-        host (str): Host.
-        port (str): Port.
-        path (str): Path appended to the URL.
-        ssl (bool): Use a secured URL or not.
-        scheme_no_ssl (str): Scheme used if `ssl` is false.
-        scheme_ssl (str): Scheme used if `ssl` is true.
+        host: Host.
+        port: Port.
+        path: Path appended to the URL.
+        ssl: Use a secured URL or not.
+        scheme_no_ssl: Scheme used if `ssl` is false.
+        scheme_ssl: Scheme used if `ssl` is true.
         Any other argument is ignored.
 
     Returns:
-        str: URL string.
+        URL string.
 
     Raises:
         URLParameterError: If `scheme` or `host` cannot be defined, or if the
@@ -140,11 +140,11 @@ def strtobool(input_value: str, default: bool = False) -> bool:
     Returns `default` if `input_value` is anything else.
 
     Args:
-        input_value (str): string representing a boolean
-        default (bool): default boolean return value
+        input_value: String representing a boolean.
+        default: Default boolean return value.
 
     Returns:
-        bool: boolean value represented by `input_value`
+        Boolean value represented by `input_value`.
     """
     input_value = input_value.lower()
 

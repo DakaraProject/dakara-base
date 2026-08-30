@@ -34,12 +34,6 @@ def authenticated(fun: Callable) -> Callable:
 
     It makes sure that the given function is called only if authenticated. If
     not authenticated, calling the function will raise a `NotAuthenticatedError`.
-
-    Args:
-        fun (function): Function to decorate.
-
-    Returns:
-        function: Decorated function.
     """
 
     @wraps(fun)
@@ -62,35 +56,37 @@ class HTTPClient:
     traditional login/password mechanism. If a token is provided, it will be
     used without trying to authenticate.
 
-    Attributes:
-        AUTHENTICATE_ENDPOINT (str): Endpoint for authentication.
-        mute_raise (bool): If true, no exception will be raised when performing
-            connections with the server (but authentication), only logged.
-        server_url (str): URL of the server.
-        token (str): Value of the token. The token is set when successfuly
-            calling `authenticate`.
-        login (str): Login used for authentication.
-        password (str): Password used for authentication.
-
     Args:
-        config (dict): Config of the server.
-        endpoint_prefix (str): Prefix of the endpoint, added to the URL.
-        mute_raise (bool): If true, no exception will be raised when performing
+        config: Config of the server.
+        endpoint_prefix: Prefix of the endpoint, added to the URL.
+        mute_raise: If true, no exception will be raised when performing
             connections with the server (but authentication), only logged.
-
-    Raises:
-        ParameterError: If critical parameters cannot be found in the
-            configuration.
     """
 
     AUTHENTICATE_ENDPOINT: ClassVar[str] = "accounts/login/"
+    """Endpoint for authentication."""
+
     config: InitVar[dict]
     endpoint_prefix: InitVar[str] = None
+
     mute_raise: bool = False
-    selver_url: str = field(init=False)
+    """If true, no exception will be raised when performing connections with
+    the server (but authentication), only logged.
+    """
+
+    server_url: str = field(init=False)
+    """URL of the server."""
+
     token: str = field(init=False)
+    """Value of the token. The token is set when successfuly calling
+    `authenticate`.
+    """
+
     login: str = field(init=False)
+    """Login used for authentication."""
+
     password: str = field(init=False)
+    """Password used for authentication."""
 
     def __post_init__(self, config, endpoint_prefix) -> None:
         # url

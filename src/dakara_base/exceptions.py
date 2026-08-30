@@ -58,13 +58,12 @@ def generate_exception_handler(
     >>> assert isinstance(error, DakaraHandledError)
 
     Args:
-        exception_class (Exception or list of Exception): Exception class to
-            catch.
-        error_message (str): Error message to display. It will be displayed on
-            the next line after the exception message.
+        exception_class: Exception class to catch.
+        error_message: Error message to display. It will be displayed on the
+            next line after the exception message.
 
     Returns:
-        function: Context manager function.
+        Context manager function.
     """
 
     @contextmanager
@@ -84,13 +83,10 @@ def generate_exception_handler(
 
 @dataclass
 class ExitValue:
-    """Container for the exit value.
-
-    Attributes:
-        value (int): Exit value, default to 0.
-    """
+    """Container for the exit value."""
 
     value: int = 0
+    """Exit value, default to 0."""
 
 
 @contextmanager
@@ -109,18 +105,16 @@ def handle_all_exceptions(
     >>> sys.exit(exit_value.value)
 
     Args:
-        bugtracker_url (str): URL address of the bugtracker, displayed on
-            unexpected exceptions.
-        logger (logging.Logger): Logger. If not given, will take the current
-            module's logger.
-        debug (bool): If True, known and unknown exceptions will be directly
-            raised.
+        bugtracker_url: URL address of the bugtracker, displayed on unexpected
+            exceptions.
+        logger: Logger. If not given, will take the current module's logger.
+        debug: If True, known and unknown exceptions will be directly raised.
 
     Yields:
-        ExitValue: Container with the return value, stored in attribute
-        `value`. If no error happened, the return value is 0, in case of
-        Ctrl+C, it is 255, in case of a known error, it is 1, in case of an
-        unknown error, it is 2.
+        Container with the return value, stored in attribute `value`. If no
+        error happened, the return value is 0, in case of
+        <kdb>Ctrl</kdb>+<kdb>C</kdb>, it is 255, in case of a known error, it
+        is 1, in case of an unknown error, it is 2.
     """
     container = ExitValue()
 

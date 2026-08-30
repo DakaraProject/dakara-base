@@ -50,7 +50,10 @@ from dakara_base.exceptions import DakaraError
 from dakara_base.utils import strtobool
 
 LOG_FORMAT = "[%(asctime)s] %(name)s %(levelname)s %(message)s"
+"""Default format for logging."""
+
 LOG_LEVEL = "INFO"
+"""Default level for logging."""
 
 logger = logging.getLogger(__name__)
 
@@ -113,22 +116,19 @@ class Config(UserDict):
     You can check `environs.Env` for the supported types. Note stored values
     are parsed from the config file by the YAML library.
 
-    Attributes:
-        prefix (str): Prefix to use when looking for value in environment
-            variables.
-        env (AutoEnv): Environment parser.
-
     Args:
-        prefix (str): Prefix to use when looking for value in environment
-            variables.
-        iterable (iterable): Values to store.
+        prefix: Prefix to use when looking for value in environment variables.
+        iterable: Values to store.
     """
 
     def __init__(self, prefix: str, iterable: dict | None = None) -> None:
         super().__init__()
 
         self.prefix: str = prefix
+        """Prefix to use when looking for value in environment variables."""
+
         self.env: AutoEnv = AutoEnv()
+        """Environment parser."""
 
         # create values in object if any provided
         if iterable:
@@ -140,7 +140,7 @@ class Config(UserDict):
         Dictionaries will be converted into Config with a sub-prefix.
 
         Args:
-            iterable (dict): Dictionary of values.
+            iterable: Dictionary of values.
         """
         # recursively convert dictionaries into Config objects
         iterable = {
@@ -160,7 +160,7 @@ class Config(UserDict):
         """Set log level of the config to debug.
 
         Args:
-            debug (bool): If `True` (default), set log level to "DEBUG".
+            debug: If `True` (default), set log level to "DEBUG".
         """
         if debug:
             self.data["loglevel"] = "DEBUG"
@@ -169,7 +169,7 @@ class Config(UserDict):
         """Check if a list of keys is present in the config.
 
         Args:
-            keys (list of str): Keys that must be present in the config.
+            keys: Keys that must be present in the config.
         """
         for key in keys:
             self.check_mandatory_key(key)
@@ -178,7 +178,7 @@ class Config(UserDict):
         """Check if a key is present in the config.
 
         Args:
-            keys (str): Key that must be present in the config.
+            keys: Key that must be present in the config.
 
         Raises:
             ConfigInvalidError: If the config misses a critical section.
@@ -190,7 +190,7 @@ class Config(UserDict):
         """Load config from a given YAML file.
 
         Args:
-            config_path (pathlib.Path): Path to the config file.
+            config_path: Path to the config file.
 
         Raises:
             ConfigNotFoundError: If the config file cannot be open.
@@ -213,9 +213,8 @@ class Config(UserDict):
         """Get the value from prefixed upper case environment variable.
 
         Args:
-            key (str): Name of the variable without prefix.
-            type (type): Type of the variable. If not provided, default to
-                string.
+            key: Name of the variable without prefix.
+            type: Type of the variable. If not provided, default to string.
 
         Returns:
             str: Value from environment variable.
@@ -243,11 +242,11 @@ class Config(UserDict):
         returned value when getting it from the environment variables.
 
         Args:
-            key (any): Key to retreive.
-            default (any): Default value if the key cannot be found.
+            key: Key to retreive.
+            default: Default value if the key cannot be found.
 
         Returns:
-            any: Value. If `default` was provided, it will be of the same type.
+            Value. If `default` was provided, it will be of the same type.
         """
         # guess cast from default value
         cast = None
@@ -270,11 +269,11 @@ def create_logger(
     """Create logger.
 
     Args:
-        wrap (bool): If True, wrap the standard error stream for using logging
-            and progress bar. You have to enable this flag if you use
+        wrap: If True, wrap the standard error stream for using logging and
+            progress bar. You have to enable this flag if you use
             `progress_bar`.
-        custom_log_format (str): Custom format string to use for logs.
-        custom_log_level (str): Custom level of logging.
+        custom_log_format: Custom format string to use for logs.
+        custom_log_level: Custom level of logging.
     """
     # wrap stderr on demand
     if wrap:
@@ -286,11 +285,11 @@ def create_logger(
     coloredlogs.install(fmt=log_format, level=log_level)
 
 
-def set_loglevel(config: dict[str, str]) -> None:
+def set_loglevel(config: Config) -> None:
     """Set logger level.
 
     Arguments:
-        config (Config): Dictionary of the config.
+        config: Dictionary of the config.
     """
     loglevel = config.get("loglevel", LOG_LEVEL)
     coloredlogs.set_level(loglevel)
@@ -300,10 +299,10 @@ def create_config_file(resource: str, filename: str, force: bool = False) -> Non
     """Create a new config file in user directory.
 
     Args:
-        resource (str): Resource where to find the config file.
-        filename (str): Name of the config file.
-        force (bool): If True, config file in user directory is overwritten if
-            it existed already. Otherwise, prompt the user.
+        resource: Resource where to find the config file.
+        filename: Name of the config file.
+        force: If True, config file in user directory is overwritten if it
+            existed already. Otherwise, prompt the user.
     """
     with as_file(files(resource).joinpath(filename)) as origin:
         # get the file
