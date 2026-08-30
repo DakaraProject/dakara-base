@@ -57,6 +57,9 @@ jobs:
       - name: Install dependencies
         run: pip install -e ".[dev]"
 
+      - name: Run typing checks
+        run: python -m mypy src/dakara_base --check
+
       - name: Run import order checks
         run: python -m isort . --check
 

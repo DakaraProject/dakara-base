@@ -14,6 +14,11 @@ repos:
         entry: pytest --no-cov
         language: system
         pass_filenames: false
+      - id: mypy-check
+        name: check typing
+        entry: mypy src/dakara_base --check
+        language: system
+        pass_filenames: false
       - id: isort-check
         name: check imports order
         entry: isort . --check
