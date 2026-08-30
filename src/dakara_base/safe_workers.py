@@ -35,7 +35,16 @@ from dataclasses import dataclass, field
 from functools import wraps
 from queue import Empty, Queue
 from threading import Event, Thread, Timer
-from typing import Any, Callable, ClassVar, Self, Type
+from typing import Any, Callable, ClassVar, Type
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+
+else:
+    from typing import Any
+
+    Self = Any  # type: ignore
+
 
 logger = logging.getLogger(__name__)
 
