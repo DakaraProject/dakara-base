@@ -98,7 +98,12 @@ class WebSocketClient(WorkerSafeTimer):
     """
 
     config: InitVar[dict]
+    """Configuration for the server, the same as
+    `DakaraServerHTTPConnection`.
+    """
+
     endpoint: InitVar[str | None] = None
+    """Enpoint of the WebSocket connection, added to the URL."""
 
     header: dict = field(default_factory=dict)
     """Header to add to the HTTP requests for authentication."""

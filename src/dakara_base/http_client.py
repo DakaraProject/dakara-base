@@ -67,7 +67,10 @@ class HTTPClient:
     """Endpoint for authentication."""
 
     config: InitVar[dict]
+    """Config of the server."""
+
     endpoint_prefix: InitVar[str] = None
+    """Prefix of the endpoint, added to the URL."""
 
     mute_raise: bool = False
     """If true, no exception will be raised when performing connections with

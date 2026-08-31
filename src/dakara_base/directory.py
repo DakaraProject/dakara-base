@@ -20,3 +20,4 @@ PROJECT_NAME = "DakaraProject"
 
 
 directories = PlatformDirs(APP_NAME, PROJECT_NAME, roaming=True)
+"""Directories of the project."""
