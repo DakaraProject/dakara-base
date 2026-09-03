@@ -9,14 +9,14 @@ repos:
       - id: check-added-large-files
   - repo: local
     hooks:
-      - id: pytest-check
-        name: unit tests
-        entry: pytest --no-cov --doctest-modules
-        language: system
-        pass_filenames: false
       - id: mypy-check
         name: check typing
         entry: mypy src --check
+        language: system
+        pass_filenames: false
+      - id: pytest-check
+        name: unit tests
+        entry: pytest --no-cov --doctest-modules
         language: system
         pass_filenames: false
       - id: isort-check

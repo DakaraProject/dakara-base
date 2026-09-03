@@ -108,7 +108,7 @@ def handle_all_exceptions(
         bugtracker_url: URL address of the bugtracker, displayed on unexpected
             exceptions.
         logger: Logger. If not given, will take the current module's logger.
-        debug: If True, known and unknown exceptions will be directly raised.
+        debug: If `True`, known and unknown exceptions will be directly raised.
 
     Yields:
         Container with the return value, stored in attribute `value`. If no

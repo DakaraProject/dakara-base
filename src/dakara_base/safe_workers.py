@@ -100,10 +100,10 @@ class BaseSafeThread:
     def __init__(self, stop: Event, errors: Queue, *args, **kwargs) -> None:
         # assign stop event and error queue
         self.stop: Event = stop
-        """Stop event that notify to stop the entire program when set."""
+        """Stop event that notifies to stop the entire program when set."""
 
         self.errors: Queue = errors
-        """Error queue to communicate the exception to the main thread."""
+        """Error queue to communicate exceptions to the main thread."""
 
         # specific initialization
         super().__init__(*args, **kwargs)

@@ -55,12 +55,6 @@ class HTTPClient:
     The client uses a token credential policy only and authenticates with a
     traditional login/password mechanism. If a token is provided, it will be
     used without trying to authenticate.
-
-    Args:
-        config: Config of the server.
-        endpoint_prefix: Prefix of the endpoint, added to the URL.
-        mute_raise: If true, no exception will be raised when performing
-            connections with the server (but authentication), only logged.
     """
 
     AUTHENTICATE_ENDPOINT: ClassVar[str] = "accounts/login/"
@@ -73,7 +67,7 @@ class HTTPClient:
     """Prefix of the endpoint, added to the URL."""
 
     mute_raise: bool = False
-    """If true, no exception will be raised when performing connections with
+    """If `True`, no exception will be raised when performing connections with
     the server (but authentication), only logged.
     """
 
@@ -119,7 +113,7 @@ class HTTPClient:
         endpoint: str,
         *args,
         message_on_error: str = "",
-        function_on_error: Callable | None = None,
+        function_on_error: Callable[[requests.Response], BaseException] | None = None,
         **kwargs,
     ) -> requests.models.Response:
         """Generic method to send requests to the server.
@@ -127,12 +121,12 @@ class HTTPClient:
         It takes care of errors and raises exceptions.
 
         Args:
-            method (str): Name of the HTTP method to use.
-            endpoint (str): Endpoint to send the request to. Will be added to
+            method: Name of the HTTP method to use.
+            endpoint: Endpoint to send the request to. Will be added to
                 the end of the server URL.
-            message_on_error (str): Message to display in logs in case of
+            message_on_error: Message to display in logs in case of
                 error. It should describe what the request was about.
-            function_on_error (function): Fuction called if the request is not
+            function_on_error: Fuction called if the request is not
                 successful, it will receive the response and must return an
                 exception that will be raised. If not provided, a basic error
                 management is done.
@@ -140,7 +134,7 @@ class HTTPClient:
                 methods.
 
         Returns:
-            requests.models.Response: Response object.
+            Response object.
 
         Raises:
             MethodError: If the method is not supported.
@@ -205,14 +199,8 @@ class HTTPClient:
             See `send_request_raw`.
 
         Returns:
-            requests.models.Response: Response object. None if an error occurs
-            when communicating with the server and `mute_raise` is set.
-
-        Raises:
-            MethodError: If the method is not supported.
-            ResponseRequestError: For any error when communicating with the server.
-            ResponseInvalidError: If the response has an error code different
-                to 2**.
+            Response object. None if an error occurs when communicating with
+            the server and `mute_raise` is set.
         """
         try:
             # make the request
@@ -227,124 +215,63 @@ class HTTPClient:
 
             raise
 
-    def get(self, *args, **kwargs) -> dict | None:
+    def get(self, *args, **kwargs) -> Any:
         """Generic method to get data on server.
 
         Args:
-            endpoint (str): Endpoint to send the request to. Will be added to
-                the end of the server URL.
-            message_on_error (str): Message to display in logs in case of
-                error. It should describe what the request was about.
-            function_on_error (function): Fuction called if the request is not
-                successful, it will receive the response and must return an
-                exception that will be raised. If not provided, a basic error
-                management is done.
-            Extra arguments are passed to requests' get method.
+            See `send_request`. Extra arguments are passed to requests' get
+            method.
 
         Returns:
-            dict: Response object from the server.
-
-        Raises:
-            ResponseRequestError: For any error when communicating with the server.
-            ResponseInvalidError: If the response has an error code different
-                to 2**.
+            Response object from the server.
         """
         return self.get_json_from_response(self.send_request("get", *args, **kwargs))
 
-    def post(self, *args, **kwargs) -> dict | None:
+    def post(self, *args, **kwargs) -> Any:
         """Generic method to post data on server.
 
         Args:
-            endpoint (str): Endpoint to send the request to. Will be added to
-                the end of the server URL.
-            message_on_error (str): Message to display in logs in case of
-                error. It should describe what the request was about.
-            function_on_error (function): Fuction called if the request is not
-                successful, it will receive the response and must return an
-                exception that will be raised. If not provided, a basic error
-                management is done.
-            Extra arguments are passed to requests' post method.
-
+            See `send_request`. Extra arguments are passed to requests' post
+            method.
 
         Returns:
-            dict: Response object from the server.
-
-        Raises:
-            ResponseRequestError: For any error when communicating with the server.
-            ResponseInvalidError: If the response has an error code different
-                to 2**.
+            Response object from the server.
         """
         return self.get_json_from_response(self.send_request("post", *args, **kwargs))
 
-    def put(self, *args, **kwargs) -> dict | None:
+    def put(self, *args, **kwargs) -> Any:
         """Generic method to put data on server.
 
         Args:
-            endpoint (str): Endpoint to send the request to. Will be added to
-                the end of the server URL.
-            message_on_error (str): Message to display in logs in case of
-                error. It should describe what the request was about.
-            function_on_error (function): Fuction called if the request is not
-                successful, it will receive the response and must return an
-                exception that will be raised. If not provided, a basic error
-                management is done.
-            Extra arguments are passed to requests' put method.
+            See `send_request`. Extra arguments are passed to requests' put
+            method.
 
         Returns:
-            dict: Response object from the server.
-
-        Raises:
-            ResponseRequestError: For any error when communicating with the server.
-            ResponseInvalidError: If the response has an error code different
-                to 2**.
+            Response object from the server.
         """
         return self.get_json_from_response(self.send_request("put", *args, **kwargs))
 
-    def patch(self, *args, **kwargs) -> dict | None:
+    def patch(self, *args, **kwargs) -> Any:
         """Generic method to patch data on server.
 
         Args:
-            endpoint (str): Endpoint to send the request to. Will be added to
-                the end of the server URL.
-            message_on_error (str): Message to display in logs in case of
-                error. It should describe what the request was about.
-            function_on_error (function): Fuction called if the request is not
-                successful, it will receive the response and must return an
-                exception that will be raised. If not provided, a basic error
-                management is done.
-            Extra arguments are passed to requests' patch method.
+            See `send_request`. Extra arguments are passed to requests' patch
+            method.
 
         Returns:
-            dict: Response object from the server.
-
-        Raises:
-            ResponseRequestError: For any error when communicating with the server.
-            ResponseInvalidError: If the response has an error code different
-                to 2**.
+            Response object from the server.
         """
         return self.get_json_from_response(self.send_request("patch", *args, **kwargs))
 
-    def delete(self, *args, **kwargs) -> dict | None:
+    def delete(self, *args, **kwargs) -> Any:
         """Generic method to patch data on server.
 
         Args:
-            endpoint (str): Endpoint to send the request to. Will be added to
-                the end of the server URL.
-            message_on_error (str): Message to display in logs in case of
-                error. It should describe what the request was about.
-            function_on_error (function): Fuction called if the request is not
-                successful, it will receive the response and must return an
-                exception that will be raised. If not provided, a basic error
-                management is done.
-            Extra arguments are passed to requests' delete method.
+            See `send_request`. Extra arguments are passed to requests' delete
+            method.
 
         Returns:
-            dict: Response object from the server.
-
-        Raises:
-            ResponseRequestError: For any error when communicating with the server.
-            ResponseInvalidError: If the response has an error code different
-                to 2**.
+            Response object from the server.
         """
         return self.get_json_from_response(self.send_request("delete", *args, **kwargs))
 
@@ -355,11 +282,6 @@ class HTTPClient:
         authentication token. This token is stored in the instance.
 
         If a token was specified in the config, this function does nothing.
-
-        Raises:
-            See `send_request_raw`.
-            AuthenticationError: If the connection is denied or if any onther
-                error occurs.
         """
 
         if self.token:
@@ -403,22 +325,22 @@ class HTTPClient:
         Can be called only after a successful authentication.
 
         Returns:
-            dict: Formatted token.
+            Formatted token.
         """
         return {"Authorization": "Token " + self.token}
 
     @staticmethod
     def get_json_from_response(
-        response: requests.models.Response | None,
-    ) -> dict | None:
+        response: requests.Response | None,
+    ) -> Any:
         """Parse the response of a request if possible.
 
         Args:
-            response (requests.models.Response): Response of a request.
+            response: Response of a request.
 
         Returns:
-            dict: Parsed response. None if no response was given or response
-            has no content.
+            Parsed response. None if no response was given or response has no
+            content.
         """
         if response is not None and response.text:
             return response.json()
