@@ -18,7 +18,7 @@ all program exceptions.
 import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Callable, Collection, Iterator, Type
+from typing import Any, Callable, Collection, Iterator, Type
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class DakaraHandledError(BaseException):
 def generate_exception_handler(
     exception_class: Type[BaseException] | Collection[Type[BaseException]],
     error_message: str,
-) -> Callable:
+) -> Callable[[], Any]:
     """Generate a context manager to take care of given exception.
 
     It will add a custom message to an expected exception class. An exception
