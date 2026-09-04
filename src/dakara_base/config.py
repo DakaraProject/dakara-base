@@ -20,7 +20,6 @@ before reading the config, as `load_config` needs a logger, then call the
 latter one:
 
 >>> create_logger()
->>> from pathlib import Path
 >>> config = Config("DAKARA")
 >>> set_loglevel(config)
 

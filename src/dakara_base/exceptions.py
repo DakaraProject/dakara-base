@@ -95,7 +95,6 @@ def handle_all_exceptions(
 
     Unless in debug mode, no exceptions will be raised.
 
-    >>> import sys
     >>> with handle_all_exceptions(
     ...     "https://www.example.com/bugtracker"
     ... ) as exit_value:
