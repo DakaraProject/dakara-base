@@ -91,8 +91,16 @@ def create_url(
             parameters are invalid to `furl.furl`.
     """
     # setting URL directly
-    if url:
-        return furl(url).add(path=path or "").url
+    if url is not None:
+        full_url = furl(url)
+
+        if path is not None:
+            full_url = full_url.add(path=path)
+
+        new_url = full_url.url
+        assert new_url is not None
+
+        return new_url
 
     # getting host and port indirectly from address
     if not host:
@@ -121,7 +129,10 @@ def create_url(
 
     # combine the arguments
     try:
-        return furl(scheme=scheme, host=host, port=port, path=path).url
+        new_url = furl(scheme=scheme, host=host, port=port, path=path).url
+        assert new_url is not None
+
+        return new_url
 
     except ValueError as error:
         raise URLParameterError(

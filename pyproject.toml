@@ -77,6 +77,5 @@ line-length = 88
 select = ["E", "F", "W", "B"]
 ignore = []
 
-[[tool.mypy.overrides]]
-module = ["furl.*", "coloredlogs.*"]
-follow_untyped_imports = true
+[tool.mypy]
+mypy_path = "stubs"
