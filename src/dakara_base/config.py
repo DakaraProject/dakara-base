@@ -116,13 +116,16 @@ class Config(UserDict):
 
     You can check `environs.Env` for the supported types. Note stored values
     are parsed from the config file by the YAML library.
-
-    Args:
-        prefix: Prefix to use when looking for value in environment variables.
-        iterable: Values to store.
     """
 
     def __init__(self, prefix: str, iterable: dict | None = None) -> None:
+        """Constructor.
+
+        Args:
+            prefix: Prefix to use when looking for value in environment
+                variables.
+            iterable: Values to store.
+        """
         super().__init__()
 
         self.prefix: str = prefix

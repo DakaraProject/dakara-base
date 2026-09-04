@@ -89,12 +89,6 @@ class WebSocketClient(WorkerSafeTimer):
     Being a `safe_workers.WorkerSafeTimer`, any non caught exception in
     callbacks will stop the entire program. Also, the class is a context
     manager which aborts the connection on exit.
-
-    Args:
-        config: Configuration for the server, the same as
-            `DakaraServerHTTPConnection`.
-        endpoint: Enpoint of the WebSocket connection, added to the URL.
-        header: Header containing the authentication token.
     """
 
     config: InitVar[dict]
