@@ -16,7 +16,12 @@ repos:
         pass_filenames: false
       - id: pytest-check
         name: unit tests
-        entry: pytest --no-cov --doctest-modules
+        entry: pytest --no-cov
+        language: system
+        pass_filenames: false
+      - id: pytest-check-doctest
+        name: doctests
+        entry: pytest --no-cov --doctest-modules src/
         language: system
         pass_filenames: false
       - id: isort-check
