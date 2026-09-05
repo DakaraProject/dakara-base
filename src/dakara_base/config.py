@@ -195,7 +195,8 @@ class Config(UserDict):
 
         Args:
             filename: Name of the config file.
-            directory: Path of the config file directory.
+            directory: Path of the config file directory. If not provided,
+                default to the Dakara user config directory.
 
         Raises:
             ConfigNotFoundError: If the config file cannot be open.
