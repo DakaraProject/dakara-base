@@ -160,7 +160,7 @@ class ConfigTestCase(TestCase):
         # call the method
         with self.assertLogs("dakara_base.config", "DEBUG") as logger:
             with as_file(files("tests.resources").joinpath("config.yaml")) as file:
-                config.load_file(Path(file))
+                config.load_file(file.name, directory=file.parent)
 
         # assert the result
         self.assertEqual(config["key"]["subkey"], "value")
@@ -178,7 +178,7 @@ class ConfigTestCase(TestCase):
         # call the method
         with self.assertLogs("dakara_base.config", "DEBUG"):
             with self.assertRaisesRegex(ConfigNotFoundError, "No config file found"):
-                config.load_file(Path("nowhere"))
+                config.load_file("nowhere", directory=Path("/"))
 
     @patch("dakara_base.config.yaml.safe_load", autospec=True)
     def test_load_file_fail_parser_error(self, mocked_safe_load):
@@ -194,7 +194,7 @@ class ConfigTestCase(TestCase):
                 with self.assertRaisesRegex(
                     ConfigParseError, "Unable to parse config file"
                 ):
-                    config.load_file(Path(file))
+                    config.load_file(file.name, directory=file.parent)
 
     def test_config_env(self):
         """Test to load config and get value from environment."""
@@ -202,7 +202,7 @@ class ConfigTestCase(TestCase):
 
         with self.assertLogs("dakara_base.config", "DEBUG"):
             with as_file(files("tests.resources").joinpath("config.yaml")) as file:
-                config.load_file(Path(file))
+                config.load_file(file.name, directory=file.parent)
 
         self.assertNotEqual(config.get("key").get("subkey"), "myvalue")
 
@@ -389,4 +389,41 @@ class CreateConfigFileTestCase(TestCase):
         mocked_copyfile.assert_called_with(
             Path("path") / "to" / "source",
             Path("path") / "to" / "directory" / "config.yaml",
+        )
+
+    def test_create_custom_directory(
+        self,
+        mocked_files,
+        mocked_as_file,
+        mocked_user_config_dir,
+        mocked_mkdir,
+        mocked_exists,
+        mocked_copyfile,
+    ):
+        """Test create the config file in an empty directory."""
+        # setup mocks
+        mocked_exists.return_value = False
+        mocked_as_file.return_value.__enter__.return_value = (
+            Path("path") / "to" / "source"
+        )
+
+        # call the function
+        with self.assertLogs("dakara_base.config") as logger:
+            create_config_file(
+                "module.resources", "config.yaml", directory=Path("custom/path")
+            )
+
+        # assert the call
+        mocked_mkdir.assert_called_with(
+            Path("custom/path"), parents=True, exist_ok=True
+        )
+
+        # assert the logs
+        self.assertListEqual(
+            logger.output,
+            [
+                "INFO:dakara_base.config:Config created in '{}'".format(
+                    Path("custom/path/config.yaml")
+                )
+            ],
         )
