@@ -16,6 +16,7 @@ from dakara_base.safe_workers import (
     WorkerSafeTimer,
     safe,
 )
+from dakara_base.safe_workers.testing import assert_worker_no_errors
 
 
 class MyError(Exception):
@@ -100,7 +101,7 @@ class SafeTestCase(BaseTestCase):
 
         # post assertions
         self.assertFalse(self.stop.is_set())
-        self.assertTrue(self.errors.empty())
+        assert_worker_no_errors(worker)
 
     def test_worker_function_error(self):
         """Test an error function of a worker.
@@ -121,10 +122,10 @@ class SafeTestCase(BaseTestCase):
             worker.function_error()
 
         # post assertions
-        self.assertTrue(self.stop.is_set())
-        self.assertFalse(self.errors.empty())
-        _, error, _ = self.errors.get()
-        self.assertIsInstance(error, MyError)
+        with self.assertRaisesRegex(
+            AssertionError, "Worker .* is in failed state:\n.*MyError"
+        ):
+            assert_worker_no_errors(worker)
 
     def test_thread(self):
         """Test a thread.
@@ -145,7 +146,7 @@ class SafeTestCase(BaseTestCase):
 
         # post assertions
         self.assertFalse(self.stop.is_set())
-        self.assertTrue(self.errors.empty())
+        assert_worker_no_errors(thread)
 
     def test_other(self):
         """Test an other class.
