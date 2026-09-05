@@ -7,7 +7,7 @@ certain limit:
 
 >>> string = "Lorem ipsum dolot sit amet."
 >>> truncate_message(string, limit=15)
-"Lorem ipsum..."
+'Lorem ipsum...'
 
 It was initialy designed to cut Django responses during development, as some
 internal errors could make the server to respond by a very long HTML message,
@@ -24,7 +24,7 @@ as host, port, etc.:
 ...     "path": "api/",
 ... }
 >>> create_url(**config)
-"https://www.example.com:8080/api/"
+'https://www.example.com:8080/api/'
 """
 
 from furl import furl
@@ -32,20 +32,20 @@ from furl import furl
 from dakara_base.exceptions import DakaraError
 
 
-def truncate_message(message, limit=100):
+def truncate_message(message: str, limit: int = 100) -> str:
     """Display the first characters of a message.
 
     The message is truncated using ellipsis and stripped to avoid blank spaces
     before the ellipsis.
 
     Args:
-        message (str): Message to truncate.
-        limit (int): Maximum size of the message.
+        message: Message to truncate.
+        limit: Maximum size of the message.
 
     Returns:
-        str: Truncated message.
+        Truncated message.
     """
-    assert limit - 3 > 0, "Limit too short"
+    assert limit > 3, "Limit too short"
 
     if len(message) <= limit:
         return message
@@ -54,16 +54,16 @@ def truncate_message(message, limit=100):
 
 
 def create_url(
-    url="",
-    address="",
-    host="",
-    port=None,
-    path="",
-    ssl=False,
-    scheme_no_ssl="http",
-    scheme_ssl="https",
+    url: str | None = None,
+    address: str | None = None,
+    host: str | None = None,
+    port: int | str | None = None,
+    path: str | None = None,
+    ssl: bool = False,
+    scheme_no_ssl: str = "http",
+    scheme_ssl: str = "https",
     **kwargs,
-):
+) -> str:
     """Create an URL from arguments.
 
     If `url` is given, the function returns it with `path` appended. If no
@@ -73,36 +73,45 @@ def create_url(
     the URL.
 
     Args:
-        url (str): Direct URL.
+        url: Direct URL.
         address (str): Host, or host and port.
-        host (str): Host.
-        port (str): Port.
-        path (str): Path appended to the URL.
-        ssl (bool): Use a secured URL or not.
-        scheme_no_ssl (str): Scheme used if `ssl` is false.
-        scheme_ssl (str): Scheme used if `ssl` is true.
+        host: Host.
+        port: Port.
+        path: Path appended to the URL.
+        ssl: Use a secured URL or not.
+        scheme_no_ssl: Scheme used if `ssl` is false.
+        scheme_ssl: Scheme used if `ssl` is true.
         Any other argument is ignored.
 
     Returns:
-        str: URL string.
+        URL string.
 
     Raises:
         URLParameterError: If `scheme` or `host` cannot be defined, or if the
             parameters are invalid to `furl.furl`.
     """
     # setting URL directly
-    if url:
-        return furl(url).add(path=path).url
+    if url is not None:
+        full_url = furl(url)
+
+        if path is not None:
+            full_url = full_url.add(path=path)
+
+        new_url = full_url.url
+        assert new_url is not None
+
+        return new_url
 
     # getting host and port indirectly from address
     if not host:
         # try to separete host and port if they are both given in
         # address key in the form host:port
+        address_str = address or ""
         try:
-            host, port = address.split(":")
+            host, port = address_str.split(":")
 
         except ValueError:
-            host = address
+            host = address_str
 
     # getting scheme
     if ssl:
@@ -120,7 +129,10 @@ def create_url(
 
     # combine the arguments
     try:
-        return furl(scheme=scheme, host=host, port=port, path=path).url
+        new_url = furl(scheme=scheme, host=host, port=port, path=path).url
+        assert new_url is not None
+
+        return new_url
 
     except ValueError as error:
         raise URLParameterError(
@@ -139,11 +151,11 @@ def strtobool(input_value: str, default: bool = False) -> bool:
     Returns `default` if `input_value` is anything else.
 
     Args:
-        input_value (str): string representing a boolean
-        default (bool): default boolean return value
+        input_value: String representing a boolean.
+        default: Default boolean return value.
 
     Returns:
-        bool: boolean value represented by `input_value`
+        Boolean value represented by `input_value`.
     """
     input_value = input_value.lower()
 

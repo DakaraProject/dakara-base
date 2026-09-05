@@ -5,7 +5,7 @@ websocket_client library. The class is designed to work with servers sending
 JSON messages. The message received from the server must be handled by custom
 methods, consequently the class cannot be used directly:
 
->>> MyWebSocketClient(WebSocketClient):
+>>> class MyWebSocketClient(WebSocketClient):
 ...     def receive_new_song(self, data):
 ...         pass
 
@@ -13,7 +13,7 @@ The websocket client uses a token to authenticate to the server. The token can
 be optained by the `HTTPClient` class from the `http_client` module, with the
 `get_token_header` method. The client is a bit complex to setup:
 
->>> from theading import Event
+>>> from threading import Event
 >>> from queue import Queue
 >>> stop = Event()
 >>> errors = Queue()
@@ -31,8 +31,9 @@ be optained by the `HTTPClient` class from the `http_client` module, with the
 
 import json
 import logging
+from dataclasses import InitVar, dataclass, field
 from functools import wraps
-from typing import Dict, Optional
+from typing import Any, Callable
 
 from websocket import (
     WebSocketApp,
@@ -48,23 +49,18 @@ logger = logging.getLogger(__name__)
 
 
 RECONNECT_INTERVAL = 5
+"""Interval in seconds between two reconnection attempts."""
 
 
-def connected(fun):
+def connected(fun: Callable) -> Callable:
     """Decorator that ensures the websocket is set.
 
     It makes sure that the given function is called only if connected.
     If not connected, calling the function will raise a NotConnectedError.
-
-    Args:
-        fun (function): Function to decorate.
-
-    Returns:
-        function: Decorated function.
     """
 
     @wraps(fun)
-    def call(self, *args, **kwargs):
+    def call(self, *args, **kwargs) -> Any:
         if self.websocket is None:
             raise NotConnectedError("No connection established")
 
@@ -73,6 +69,7 @@ def connected(fun):
     return call
 
 
+@dataclass
 class WebSocketClient(WorkerSafeTimer):
     """WebSocket client.
 
@@ -91,80 +88,81 @@ class WebSocketClient(WorkerSafeTimer):
 
     Being a `safe_workers.WorkerSafeTimer`, any non caught exception in
     callbacks will stop the entire program. Also, the class is a context
-    manager which abort the connection on exit.
-
-    Attributes:
-        server_url (str): URL of the server.
-        header (dict): Header to add to the HTTP requests for authentication.
-        websocket (websocket.WebSocketApp): WebSocket connection object.
-        retry (bool): Flag to retry a connection if it was lost.
-        reconnect_interval (int): Interval in seconds between two reconnection
-            attempts.
-        callbacks (dict): Dictionary of extra callback actions to call on
-            receiving messages.
-        timer (threading.Timer): Timer used for reconnection.
-
-    Args:
-        config (dict): Configuration for the server, the same as
-            DakaraServerHTTPConnection.
-        endpoint (str): Enpoint of the WebSocket connection, added to the URL.
-        header (dict): Header containing the authentication token.
+    manager which aborts the connection on exit.
     """
 
-    def init_worker(
-        self, config: Dict, endpoint: str = "", header: Optional[Dict] = None
-    ):
-        if header is None:
-            header = {}
+    config: InitVar[dict]
+    """Configuration for the server, the same as
+    `DakaraServerHTTPConnection`.
+    """
+
+    endpoint: InitVar[str | None] = None
+    """Enpoint of the WebSocket connection, added to the URL."""
+
+    header: dict = field(default_factory=dict)
+    """Header to add to the HTTP requests for authentication."""
+
+    websocket: WebSocketApp | None = field(init=False, default=None)
+    """WebSocket connection object."""
+
+    retry: bool = field(init=False, default=False)
+    """Flag to retry a connection if it was lost."""
+
+    server_url: str = field(init=False)
+    """URL of the server."""
+
+    reconnect_interval: int = field(init=False)
+    """Interval in seconds between two reconnection attempts."""
+
+    callbacks: dict[str, Callable] = field(init=False, default_factory=dict)
+    """Dictionary of extra callback actions to call on receiving messages."""
+
+    def __post_init__(self, config, endpoint) -> None:
         # url
         self.server_url = create_url(
-            **config, path=endpoint, scheme_no_ssl="ws", scheme_ssl="wss"
+            **config, path=endpoint or "", scheme_no_ssl="ws", scheme_ssl="wss"
         )
 
         # other
-        self.header = header
-        self.websocket = None
-        self.retry = False
         self.reconnect_interval = config.get("reconnect_interval", RECONNECT_INTERVAL)
 
         # create callbacks
-        self.callbacks = {}
         self.set_default_callbacks()
 
         # create timer
-        self.timer = self.create_timer(0, self.run)
+        self.set_timer(0, self.run)
 
-    def set_default_callbacks(self):
+    def set_default_callbacks(self) -> None:
         """Stub for creating callbacks.
 
         The method is automatically called at initialization.
         """
 
-    def exit_worker(self, *args, **kwargs):
+    def exit_worker(self, *args, **kwargs) -> None:
         """Method called on exiting the worker to abort the connection."""
         logger.debug("Aborting websocket connection")
         self.abort()
 
-    def set_callback(self, name, callback):
+    def set_callback(self, name: str, callback: Callable) -> None:
         """Assign an arbitrary callback.
 
         Callback is added to the `callbacks` dictionary attribute.
 
         Args:
-            name (str): Name of the callback in the `callbacks` attribute.
-            callback (function): Function to assign.
+            name: Name of the callback in the `callbacks` attribute.
+            callback: Function to assign.
         """
         self.callbacks[name] = callback
 
     @safe
-    def on_open(self):
+    def on_open(self) -> None:
         """Callback when the connection is open."""
         logger.info("Websocket connected to server")
         self.retry = False
         self.on_connected()
 
     @safe
-    def on_close(self, code, reason):
+    def on_close(self, code: int, reason: str) -> None:
         """Callback when the connection is closed.
 
         If the disconnection is not due to the end of the program, consider the
@@ -172,8 +170,8 @@ class WebSocketClient(WorkerSafeTimer):
         attempted within `reconnect_interval` seconds.
 
         Args:
-            code (int): Error code (often None).
-            reason (str): Reason of the closed connection (often None).
+            code: Error code (often None).
+            reason: Reason of the closed connection (often None).
         """
         if code or reason:
             logger.debug("Code %i: %s", code, reason)
@@ -197,7 +195,7 @@ class WebSocketClient(WorkerSafeTimer):
         self.timer.start()
 
     @safe
-    def on_message(self, message):
+    def on_message(self, message: str) -> None:
         """Callback when a message is received.
 
         It will call the method which name corresponds to the event type, if
@@ -208,7 +206,7 @@ class WebSocketClient(WorkerSafeTimer):
         Any error is logged.
 
         Args:
-            message (str): A JSON text of the event.
+            message: A JSON text of the event.
         """
         # convert the message to an event object
         try:
@@ -238,11 +236,11 @@ class WebSocketClient(WorkerSafeTimer):
             logger.error("Event of unknown type received '%s'", message_type)
 
     @safe
-    def on_error(self, error):
+    def on_error(self, error: BaseException) -> None:
         """Callback when an error occurs.
 
         Args:
-            error (BaseException): Class of the error.
+            error: Class of the error.
 
         Raises:
             AuthenticationError: If the connection is denied.
@@ -281,27 +279,27 @@ class WebSocketClient(WorkerSafeTimer):
         # other unlisted reason
         logger.error("Websocket: %s", str(error))
 
-    def on_connected(self):
+    def on_connected(self) -> None:
         """Custom callback when the connection is established with the server.
 
         This method is a stub that can be overloaded.
         """
 
-    def on_connection_lost(self):
+    def on_connection_lost(self) -> None:
         """Custom callback when the connection is lost with the server.
 
         This method is a stub that can be overloaded.
         """
 
     @connected
-    def send(self, message_type, data=None, *args, **kwargs):
+    def send(self, message_type: str, data: Any | None = None, *args, **kwargs) -> None:
         """Send data to the server.
 
         Convert it to JSON string before sending.
 
         Args:
-            message_type (str): Type of the message.
-            data (any): Serializable data to send.
+            message_type: Type of the message.
+            data: Serializable data to send.
             Other arguments are passed to `websocket.WebSocketApp.send`.
         """
         # add type to the content
@@ -311,9 +309,11 @@ class WebSocketClient(WorkerSafeTimer):
         if data is not None:
             content["data"] = data
 
+        assert self.websocket is not None
+
         return self.websocket.send(json.dumps(content), *args, **kwargs)
 
-    def abort(self):
+    def abort(self) -> None:
         """Request to interrupt the connection.
 
         Can be called from anywhere. It will raise a
@@ -322,15 +322,15 @@ class WebSocketClient(WorkerSafeTimer):
         """
         self.retry = False
 
+        if self.websocket is None:
+            return
+
         # if the connection is lost, the `websocket` object may not have the
         # `abort` method
-        try:
+        if self.websocket.sock is not None:
             self.websocket.sock.abort()
 
-        except AttributeError:
-            pass
-
-    def run(self):
+    def run(self) -> None:
         """Event loop.
 
         Create the websocket connection and wait events from it. The method can

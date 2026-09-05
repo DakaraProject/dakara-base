@@ -36,12 +36,12 @@ jobs:
         run: pip install -e ".[dev]"
 
       - name: Run tests
-        run: python -m pytest -v --cov src
+        run: python -m pytest --verbose --cov-report xml:coverage.xml --cov src --doctest-modules
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: ${{ matrix.os }}-${{ matrix.python-version }}-unit-tests-coverage
+          path: ./coverage.xml
 
   static-tests:
     runs-on: ubuntu-latest
@@ -57,6 +57,9 @@ jobs:
       - name: Install dependencies
         run: pip install -e ".[dev]"
 
+      - name: Run typing checks
+        run: python -m mypy src --check
+
       - name: Run import order checks
         run: python -m isort . --check
 
@@ -68,3 +71,19 @@ jobs:
 
       - name: Run YAML files lint checks
         run: yamllint .
+
+  upload-codecov-reports:
+    needs:
+      - unit-tests
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: Download artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

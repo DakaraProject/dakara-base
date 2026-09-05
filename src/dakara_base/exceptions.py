@@ -17,22 +17,27 @@ all program exceptions.
 
 import logging
 from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import Any, Callable, Collection, Iterator, Type
 
 logger = logging.getLogger(__name__)
 
 
-class DakaraError(Exception):
+class DakaraError(BaseException):
     """Basic exception class for the project."""
 
 
-class DakaraHandledError(Exception):
+class DakaraHandledError(BaseException):
     """Basic exception class for errors that have been handled.
 
     Must be used in multiple inheritance.
     """
 
 
-def generate_exception_handler(exception_class, error_message):
+def generate_exception_handler(
+    exception_class: Type[BaseException] | Collection[Type[BaseException]],
+    error_message: str,
+) -> Callable[[], Any]:
     """Generate a context manager to take care of given exception.
 
     It will add a custom message to an expected exception class. An exception
@@ -47,29 +52,26 @@ def generate_exception_handler(exception_class, error_message):
     ...     with handle_my_error():
     ...         raise MyError("initial message")
     ... except MyError as error:
-    ...     pass
-    >>> assert str(error).split() == ["initial message", "extra message"]
-    >>> assert isinstance(error, MyError)
-    >>> assert isinstance(error, DakaraHandledError)
+    ...     str(error).splitlines()
+    ['initial message', 'extra message']
 
     Args:
-        exception_class (Exception or list of Exception): Exception class to
-            catch.
-        error_message (str): Error message to display. It will be displayed on
-            the next line after the exception message.
+        exception_class: Exception class to catch.
+        error_message: Error message to display. It will be displayed on the
+            next line after the exception message.
 
     Returns:
-        function: Context manager function.
+        Context manager function.
     """
 
     @contextmanager
-    def function():
+    def function() -> Iterator[None]:
         try:
             yield None
 
-        except exception_class as error:
+        except exception_class as error:  # type: ignore
 
-            class HandledError(error.__class__, DakaraHandledError):
+            class HandledError(type(error), DakaraHandledError):  # type: ignore
                 pass
 
             raise HandledError("{}\n{}".format(error, error_message)) from error
@@ -77,43 +79,41 @@ def generate_exception_handler(exception_class, error_message):
     return function
 
 
+@dataclass
 class ExitValue:
-    """Container for the exit value.
+    """Container for the exit value."""
 
-    Attributes:
-        value (int): Exit value, default to 0.
-    """
-
-    def __init__(self):
-        self.value = 0
+    value: int = 0
+    """Exit value, default to 0."""
 
 
 @contextmanager
-def handle_all_exceptions(bugtracker_url, logger=logger, debug=False):
+def handle_all_exceptions(
+    bugtracker_url: str, logger: logging.Logger = logger, debug: bool = False
+) -> Iterator[ExitValue]:
     """Handle all exceptions and yield an exit value.
 
     Unless in debug mode, no exceptions will be raised.
 
-    >>> import sys
     >>> with handle_all_exceptions(
-    ...    "https://www.example.com/bugtracker"
+    ...     "https://www.example.com/bugtracker"
     ... ) as exit_value:
-    ...    # your program here
-    >>> sys.exit(exit_value.value)
+    ...     # your program here
+    ...     pass
+    >>> exit_value.value
+    0
 
     Args:
-        bugtracker_url (str): URL address of the bugtracker, displayed on
-            unexpected exceptions.
-        logger (logging.Logger): Logger. If not given, will take the current
-            module's logger.
-        debug (bool): If True, known and unknown exceptions will be directly
-            raised.
+        bugtracker_url: URL address of the bugtracker, displayed on unexpected
+            exceptions.
+        logger: Logger. If not given, will take the current module's logger.
+        debug: If `True`, known and unknown exceptions will be directly raised.
 
     Yields:
-        ExitValue: Container with the return value, stored in attribute
-        `value`. If no error happened, the return value is 0, in case of
-        Ctrl+C, it is 255, in case of a known error, it is 1, in case of an
-        unknown error, it is 2.
+        Container with the return value, stored in attribute `value`. If no
+        error happened, the return value is 0, in case of
+        <kdb>Ctrl</kdb>+<kdb>C</kdb>, it is 255, in case of a known error, it
+        is 1, in case of an unknown error, it is 2.
     """
     container = ExitValue()
 

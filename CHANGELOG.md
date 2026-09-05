@@ -30,6 +30,16 @@
 
 ## Unreleased
 
+### Added
+
+- `safe_workers.WorkerSafeTimer.timer` can be set with `safe_workers.WorkerSafeTimer.set_timer`.
+- `safe_workers.WorkerSafeThread.thread` can be set with `safe_workers.WorkerSafeThread.set_thread`.
+
+### Changed
+
+- `safe_workers.WorkerSafeTimer.timer` is now unset by default, instead of being set with an unusuable timer.
+- `safe_workers.WorkerSafeThread.thread` is now unset by default, instead of being set with an unusuable thread.
+
 ## 2.3.0 - 2026-08-12
 
 - Update dependencies.
