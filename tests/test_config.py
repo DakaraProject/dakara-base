@@ -336,9 +336,7 @@ class TestCreateConfigFile:
             mocked_input,
         ) = test_create_config_file_mockers
         mocked_exists.return_value = False
-        mocked_as_file.return_value.__enter__.return_value = (
-            Path("path") / "to" / "source"
-        )
+        mocked_as_file.return_value.__enter__.return_value = Path("path/to/source")
 
         caplog.set_level(logging.INFO)
 
@@ -380,9 +378,7 @@ class TestCreateConfigFile:
         ) = test_create_config_file_mockers
         mocked_exists.return_value = True
         mocked_input.return_value = "no"
-        mocked_as_file.return_value.__enter__.return_value = (
-            Path("path") / "to" / "source"
-        )
+        mocked_as_file.return_value.__enter__.return_value = Path("path/to/source")
 
         # call the function
         create_config_file("module.resources", "config.yaml")
@@ -407,9 +403,7 @@ class TestCreateConfigFile:
             mocked_files,
             mocked_input,
         ) = test_create_config_file_mockers
-        mocked_as_file.return_value.__enter__.return_value = (
-            Path("path") / "to" / "source"
-        )
+        mocked_as_file.return_value.__enter__.return_value = Path("path/to/source")
 
         # call the function
         create_config_file("module.resources", "config.yaml", force=True)
