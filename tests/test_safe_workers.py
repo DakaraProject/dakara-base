@@ -436,7 +436,7 @@ class TestWorkerSafeTimer:
 
         # create and run worker
         with dummy_worker_safe_timer as worker:
-            worker.set_timer(0, worker.function_already_dead)
+            worker.set_timer(0.5, worker.function_already_dead)
             assert worker.timer is not None
             worker.timer.start()
             worker.timer.join()
@@ -458,7 +458,7 @@ class TestWorkerSafeTimer:
 
         # create and run worker
         with dummy_worker_safe_timer as worker:
-            worker.set_timer(0, worker.function_to_cancel)
+            worker.set_timer(0.5, worker.function_to_cancel)
             assert worker.timer is not None
             worker.timer.start()
             sleep(0.1)
@@ -481,7 +481,7 @@ class TestWorkerSafeTimer:
 
         # create and run worker
         with dummy_worker_safe_timer as worker:
-            worker.set_timer(0, worker.function_to_join)
+            worker.set_timer(0.5, worker.function_to_join)
             assert worker.timer is not None
             worker.timer.start()
             sleep(0.1)
