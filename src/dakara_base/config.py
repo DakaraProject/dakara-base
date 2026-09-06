@@ -210,8 +210,7 @@ class Config(UserDict):
 
         # load and parse the file and create config data
         try:
-            with config_path.open() as file:
-                self.set_iterable(yaml.safe_load(file))
+            self.set_iterable(yaml.safe_load(config_path.read_text()))
 
         except yaml.parser.ParserError as error:
             raise ConfigParseError("Unable to parse config file") from error

@@ -160,6 +160,34 @@ class TestConfig:
             ("dakara_base.config", logging.INFO, f"Loading config file '{Path(file)}'")
         ]
 
+    def test_load_file_success_no_directory(self, caplog, mocker):
+        """Test to load a config file without specifying a directory."""
+        mocker.patch.object(
+            PlatformDirs,
+            "user_config_dir",
+            new_callable=mocker.PropertyMock(return_value=Path("path/to/directory")),
+        ),
+        mocker.patch.object(
+            Path, "read_text", return_value="{key: value}", autospec=True
+        )
+        config = Config("DAKARA")
+
+        # call the method
+        caplog.set_level(logging.DEBUG)
+        config.load_file("config.yaml")
+
+        # assert the result
+        assert config["key"] == "value"
+
+        # assert the effect on logs
+        assert caplog.record_tuples == [
+            (
+                "dakara_base.config",
+                logging.INFO,
+                f"Loading config file '{Path('path/to/directory/config.yaml')}'",
+            )
+        ]
+
     def test_load_file_fail_not_found(self):
         """Test to load a not found config file."""
         config = Config("DAKARA")
