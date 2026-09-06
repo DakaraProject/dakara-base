@@ -63,6 +63,12 @@ class AutoEnv(Env):
     """Environment variable reader with an automatic method."""
 
     def auto(self, type: Type, *args, **kwargs) -> Any:
+        """Retrieve an environment variable and cast it with the provided type.
+
+        Args:
+            type: Type of data to cast to.
+            See documentation of `Env`.
+        """
         type_str = type.__name__
         return getattr(self, type_str)(*args, **kwargs)
 
