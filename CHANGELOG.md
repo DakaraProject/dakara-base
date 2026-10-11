@@ -32,6 +32,7 @@
 
 ### Added
 
+- Added function `assert_worker_no_errors` for tests, in `safe_workers.testing`.
 - `safe_workers.WorkerSafeTimer.timer` can be set with `safe_workers.WorkerSafeTimer.set_timer`.
 - `safe_workers.WorkerSafeThread.thread` can be set with `safe_workers.WorkerSafeThread.set_thread`.
 
