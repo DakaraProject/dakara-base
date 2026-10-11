@@ -63,6 +63,12 @@ class AutoEnv(Env):
     """Environment variable reader with an automatic method."""
 
     def auto(self, type: Type, *args, **kwargs) -> Any:
+        """Retrieve an environment variable and cast it with the provided type.
+
+        Args:
+            type: Type of data to cast to.
+            See documentation of `Env`.
+        """
         type_str = type.__name__
         return getattr(self, type_str)(*args, **kwargs)
 
@@ -190,22 +196,27 @@ class Config(UserDict):
         if key not in self.data:
             raise ConfigInvalidError("Invalid config file, missing '{}'".format(key))
 
-    def load_file(self, config_path: Path) -> None:
+    def load_file(self, filename: str, directory: Path | None = None) -> None:
         """Load config from a given YAML file.
 
         Args:
-            config_path: Path to the config file.
+            filename: Name of the config file.
+            directory: Path of the config file directory. If not provided,
+                default to the Dakara user config directory.
 
         Raises:
             ConfigNotFoundError: If the config file cannot be open.
             ConfigParseError: If the config cannot be parsed.
         """
+        if directory is None:
+            directory = directories.user_config_path
+
+        config_path = directory / filename
         logger.info("Loading config file '%s'", config_path)
 
         # load and parse the file and create config data
         try:
-            with config_path.open() as file:
-                self.set_iterable(yaml.safe_load(file))
+            self.set_iterable(yaml.safe_load(config_path.read_text()))
 
         except yaml.parser.ParserError as error:
             raise ConfigParseError("Unable to parse config file") from error
@@ -299,18 +310,24 @@ def set_loglevel(config: Config) -> None:
     coloredlogs.set_level(loglevel)
 
 
-def create_config_file(resource: str, filename: str, force: bool = False) -> None:
+def create_config_file(
+    resource: str, filename: str, directory: Path | None = None, force=False
+) -> None:
     """Create a new config file in user directory.
 
     Args:
         resource: Resource where to find the config file.
         filename: Name of the config file.
+        directory: Path of the config file directory.
         force: If True, config file in user directory is overwritten if it
             existed already. Otherwise, prompt the user.
     """
+    if directory is None:
+        directory = directories.user_config_path
+
     with as_file(files(resource).joinpath(filename)) as origin:
         # get the file
-        destination = directories.user_config_path / filename
+        destination = directory / filename
 
         # create directory
         destination.parent.mkdir(parents=True, exist_ok=True)
