@@ -3,9 +3,10 @@ import sys
 from contextlib import contextmanager
 from io import StringIO
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import progressbar
+from progressbar.bar import ProgressBarMixinBase
 
 from dakara_base import progress_bar
 
@@ -16,13 +17,12 @@ class ShrinkablaTextWidgetTestCase(TestCase):
     def test_no_shrink(self):
         """Test a not shrinked case."""
         # prepare mock objects
-        progress = MagicMock()
+        progress = ProgressBarMixinBase()
         progress.term_width = 80
-        data = MagicMock()
 
         # create the widget and update it
         widget = progress_bar.ShrinkableTextWidget("some text here")
-        result = widget(progress, data)
+        result = widget(progress, {})
 
         # assert the result
         self.assertEqual(len(result), 20)
@@ -31,13 +31,12 @@ class ShrinkablaTextWidgetTestCase(TestCase):
     def test_shrink(self):
         """Test a not shrinked case."""
         # prepare mock objects
-        progress = MagicMock()
+        progress = ProgressBarMixinBase()
         progress.term_width = 40
-        data = MagicMock()
 
         # create the widget and update it
         widget = progress_bar.ShrinkableTextWidget("some text here")
-        result = widget(progress, data)
+        result = widget(progress, {})
 
         # assert the result
         self.assertEqual(len(result), 10)
