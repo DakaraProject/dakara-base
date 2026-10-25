@@ -1,7 +1,6 @@
 from queue import Queue
 from threading import Event
 from time import sleep
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -621,7 +620,7 @@ class TestWorkerSafeThread:
 
 
 class TestRunner:
-    def test_run_safe_interrupt(self, runner):
+    def test_run_safe_interrupt(self, runner, mocker):
         """Test a run with an interruption by KeyboardInterrupt exception.
 
         The run should end with a set stop event and an empty errors queue.
@@ -631,8 +630,9 @@ class TestRunner:
         assert_worker_no_errors(runner)
 
         # modify stop event wait method
-        runner.stop.wait = MagicMock()
-        runner.stop.wait.side_effect = KeyboardInterrupt
+        mocker.patch.object(
+            Event, "wait", side_effect=KeyboardInterrupt(), autospec=True
+        )
 
         # call the method
         runner.run_safe(DummyWorkerSafeThreadNormal)
