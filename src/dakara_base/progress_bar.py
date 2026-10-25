@@ -33,6 +33,8 @@ from typing import Iterable
 import progressbar
 from progressbar.widgets import WidgetBase
 
+from dakara_base.utils import truncate_message
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,12 +60,7 @@ class ShrinkableTextWidget(WidgetBase):
         width = int(progress.term_width * self.ratio)
 
         # truncate text if necessary
-        text = self.text
-        if len(text) > width:
-            half = int(width * 0.5)
-            text = text[: half - 2].strip() + "..." + text[-half + 1 :].strip()
-
-        return text.ljust(width)
+        return truncate_message(self.text, width, position="middle").ljust(width)
 
 
 def progress_bar(

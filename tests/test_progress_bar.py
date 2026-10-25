@@ -41,7 +41,7 @@ class ShrinkablaTextWidgetTestCase(TestCase):
 
         # assert the result
         self.assertEqual(len(result), 10)
-        self.assertEqual(result, "som...here")
+        self.assertEqual(result, "some...ere")
 
     def test_too_short(self):
         """Test a too short case."""
