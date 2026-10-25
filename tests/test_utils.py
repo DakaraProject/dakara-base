@@ -6,29 +6,31 @@ from dakara_base.utils import URLParameterError, create_url, strtobool, truncate
 class TestTruncateMessage:
     def test_small_message(self):
         """Test a small message is completelly displayed."""
-        message = "few characters"
-        message_displayed = truncate_message(message, limit=50)
+        assert truncate_message("few characters") == "few characters"
 
-        assert len(message_displayed) <= 50
-        assert message_displayed == "few characters"
+    def test_long_message_end(self):
+        """Test a long message is cut at the end."""
+        text = "few characters"
+        assert truncate_message(text, limit=5) == "fe..."
+        assert truncate_message(text, limit=6) == "few..."
+        assert truncate_message(text, limit=7) == "few..."
 
-    def test_long_message(self):
-        """Test a long message is cut."""
-        message = "few characters"
-        message_displayed = truncate_message(message, limit=5)
-
-        assert len(message_displayed) == 5
-        assert message_displayed == "fe..."
+    def test_long_message_middle(self):
+        """Test a long message is cut at the middle."""
+        text = "few characters"
+        assert truncate_message(text, limit=5, position="middle") == "f...s"
+        assert truncate_message(text, limit=6, position="middle") == "fe...s"
+        assert truncate_message(text, limit=7, position="middle") == "fe...rs"
+        assert truncate_message(text, limit=10, position="middle") == "few...ers"
+        assert truncate_message(text, limit=11, position="middle") == "few...ters"
 
     def test_too_short_limit(self):
         """Test a too short limit.
 
         This case is marginal.
         """
-        message = "few characters"
-
         with pytest.raises(AssertionError, match="Limit too short"):
-            truncate_message(message, limit=2)
+            truncate_message("few characters", limit=2)
 
 
 class TestCreateUrl:
