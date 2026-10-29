@@ -41,6 +41,7 @@
 - `config.Config.load_file` now accepts a filename as its first argument and a directory path as its optional second argument. The filename is joined with the directory to form the path of the config file to load. If the directory is not given, it defaults to the Dakara user config directory.
 - `safe_workers.WorkerSafeTimer.timer` is now unset by default, instead of being set with an unusuable timer.
 - `safe_workers.WorkerSafeThread.thread` is now unset by default, instead of being set with an unusuable thread.
+- `utils.truncate_message` can now truncate at the middle of a message.
 
 ## 2.3.0 - 2026-08-12
 

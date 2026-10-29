@@ -32,7 +32,7 @@ from furl import furl
 from dakara_base.exceptions import DakaraError
 
 
-def truncate_message(message: str, limit: int = 100) -> str:
+def truncate_message(message: str, limit: int = 100, position: str = "end") -> str:
     """Display the first characters of a message.
 
     The message is truncated using ellipsis and stripped to avoid blank spaces
@@ -41,16 +41,31 @@ def truncate_message(message: str, limit: int = 100) -> str:
     Args:
         message: Message to truncate.
         limit: Maximum size of the message.
+        position: Where to put the ellipsis. If "middle", the ellipsis are at
+            the middle of the message. Any other value defaults to ellipsis at
+            the end of the message.
 
     Returns:
         Truncated message.
     """
     assert limit > 3, "Limit too short"
 
+    message = message.strip()
     if len(message) <= limit:
         return message
 
-    return message[: limit - 3].strip() + "..."
+    if position == "middle":
+        limit_half = int((limit - 3) * 0.5)
+        correction = 0
+        if limit_half * 2 < limit - 3:
+            correction = 1
+
+        lower = message[: limit_half + correction].strip()
+        upper = message[-limit_half:].strip()
+        return f"{lower}...{upper}"
+
+    # default to end
+    return f"{message[: limit - 3].strip()}..."
 
 
 def create_url(
