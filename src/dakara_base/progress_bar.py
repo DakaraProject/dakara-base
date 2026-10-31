@@ -28,7 +28,8 @@ The text is displayed as a log entry.
 """
 
 import logging
-from typing import Iterable
+from contextlib import contextmanager
+from typing import Iterable, Iterator
 
 import progressbar
 from progressbar.bar import ProgressBarMixinBase
@@ -125,3 +126,14 @@ def null_bar(iterator: Iterable, *args, text: str | None = None, **kwargs) -> It
     with progressbar.NullBar(*args, **kwargs) as progress:
         for item in progress(iterator):
             yield item
+
+
+@contextmanager
+def wrap_stderr() -> Iterator[None]:
+    """Temporary wrap stderr with progressbar tools."""
+    try:
+        progressbar.streams.wrap_stderr()
+        yield None
+
+    finally:
+        progressbar.streams.unwrap_stderr()

@@ -1,19 +1,16 @@
 import logging
 import sys
-from contextlib import contextmanager
+from contextlib import redirect_stderr
 from io import StringIO
-from unittest import TestCase
-from unittest.mock import patch
 
-import progressbar
+import pytest
 from progressbar.bar import ProgressBarMixinBase
 
 from dakara_base import progress_bar
+from tests.utils import get_lines
 
 
-class ShrinkablaTextWidgetTestCase(TestCase):
-    """Test the widget for shrinkable text."""
-
+class TestShrinkablaTextWidget:
     def test_no_shrink(self):
         """Test a not shrinked case."""
         # prepare mock objects
@@ -25,11 +22,11 @@ class ShrinkablaTextWidgetTestCase(TestCase):
         result = widget(progress, {})
 
         # assert the result
-        self.assertEqual(len(result), 20)
-        self.assertEqual(result, "some text here      ")
+        assert len(result) == 20
+        assert result == "some text here      "
 
     def test_shrink(self):
-        """Test a not shrinked case."""
+        """Test a shrinked case."""
         # prepare mock objects
         progress = ProgressBarMixinBase()
         progress.term_width = 40
@@ -39,114 +36,75 @@ class ShrinkablaTextWidgetTestCase(TestCase):
         result = widget(progress, {})
 
         # assert the result
-        self.assertEqual(len(result), 10)
-        self.assertEqual(result, "some...ere")
+        assert len(result) == 10
+        assert result == "some...ere"
 
     def test_too_short(self):
         """Test a too short case."""
         # create the widget
-        with self.assertRaises(AssertionError) as error:
+        with pytest.raises(AssertionError, match="Text too short"):
             progress_bar.ShrinkableTextWidget("some")
 
-        # assert the error
-        self.assertEqual(str(error.exception), "Text too short")
 
-
-class ProgressBarTestCase(TestCase):
-    """Test the default progress bar."""
-
-    @staticmethod
-    def get_lines(file):
-        """Get a neat list of printed lines from a dummy file descriptor..
-
-        Args:
-            file (io.StringIO): Dummy file descriptor that get the output of
-                the progress bar. It must not be closed.
-
-        Returns:
-            list of str: List of actually printed lines. Blank lines are removed.
-        """
-        content = file.getvalue()
-        lines = content.replace("\r", "\n").splitlines()
-        return [line for line in lines if line.strip()]
-
+class TestProgressBar:
     def test_text(self):
         """Test a bar with text."""
         # call the bar
-        with StringIO() as file:
-            for _ in progress_bar.progress_bar(
-                range(1), fd=file, term_width=65, text="some text here"
-            ):
-                pass
-
-            lines = self.get_lines(file)
+        file = StringIO()
+        for _ in progress_bar.progress_bar(
+            range(1), fd=file, term_width=65, text="some text here"
+        ):
+            pass
 
         # assert the lines
-        self.assertEqual(len(lines), 3)
-        self.assertEqual(
-            lines,
-            [
-                "some text here     0% |    | Elapsed Time: 0:00:00 ETA:  --:--:--",
-                "some text here   100% |####| Elapsed Time: 0:00:00 Time:  0:00:00",
-                "some text here   100% |####| Elapsed Time: 0:00:00 Time:  0:00:00",
-            ],
-        )
+        assert get_lines(file) == [
+            "some text here     0% |    | Elapsed Time: 0:00:00 ETA:  --:--:--",
+            "some text here   100% |####| Elapsed Time: 0:00:00 Time:  0:00:00",
+            "some text here   100% |####| Elapsed Time: 0:00:00 Time:  0:00:00",
+        ]
 
     def test_no_text(self):
         """Test a bar without text."""
         # call the bar
-        with StringIO() as file:
-            for _ in progress_bar.progress_bar(range(1), fd=file, term_width=65):
-                pass
-
-            lines = self.get_lines(file)
+        file = StringIO()
+        for _ in progress_bar.progress_bar(range(1), fd=file, term_width=65):
+            pass
 
         # assert the lines
-        self.assertEqual(len(lines), 3)
-        self.assertEqual(
-            lines,
-            [
-                "  0% |                     | Elapsed Time: 0:00:00 ETA:  --:--:--",
-                "100% |#####################| Elapsed Time: 0:00:00 Time:  0:00:00",
-                "100% |#####################| Elapsed Time: 0:00:00 Time:  0:00:00",
-            ],
-        )
+        assert get_lines(file) == [
+            "  0% |                     | Elapsed Time: 0:00:00 ETA:  --:--:--",
+            "100% |#####################| Elapsed Time: 0:00:00 Time:  0:00:00",
+            "100% |#####################| Elapsed Time: 0:00:00 Time:  0:00:00",
+        ]
 
     def test_stderr_on_no_exception(self):
         """Test to check stderr is not captured if no exceptions occur."""
+        file = StringIO()
         stderr = StringIO()
-        initial_stderr = sys.stderr
+        stderr_origin = sys.stderr
 
-        # we patch `sys.stderr` as it is risky to work directly on it, and we
-        # patch `progressbar.streams.original_stderr` as it is defined at
-        # module loading
-        with (
-            patch("sys.stderr", stderr),
-            patch("progressbar.streams.original_stderr", stderr),
-            wrap_stderr_progressbar(),
-        ):
-            wrapped_stderr = sys.stderr
+        assert stderr_origin is not stderr
 
-            # execute the progressbar without exception
-            with StringIO() as file:
+        with redirect_stderr(stderr):
+            assert sys.stderr is stderr
+            assert sys.stderr is not stderr_origin
+
+            sys.stderr.write("error1")
+            assert "error1" in stderr.getvalue()
+
+            with progress_bar.wrap_stderr():
+                assert sys.stderr is not stderr
+                assert sys.stderr is not stderr_origin
+
+                # execute the progressbar without exception
                 for _ in progress_bar.progress_bar(range(1), fd=file, term_width=65):
                     pass
 
-            sys.stderr.write("error")
-            after_stderr = sys.stderr
+                sys.stderr.write("error2")
+                assert "error2" not in stderr.getvalue()
 
-        final_stderr = sys.stderr
-
-        # assert stderrs
-        self.assertIs(initial_stderr, final_stderr)
-        self.assertIs(wrapped_stderr, after_stderr)
-        self.assertIsNot(initial_stderr, wrapped_stderr)
-        self.assertIsNot(stderr, wrapped_stderr)
-        self.assertIsNot(stderr, initial_stderr)
-
-        # assert stderr value
-        value = stderr.getvalue()
-        self.assertEqual(value, "error")
+        assert sys.stderr is stderr_origin
+        assert stderr.getvalue() == "error1"
 
     def test_no_stderr_on_exception(self):
         """Test to check stderr does not remain captured after an exception.
@@ -155,101 +113,64 @@ class ProgressBarTestCase(TestCase):
         `progressbar.streams.stop_capturing` and the stderr is allways
         captured.
         """
-
-        class MyException(Exception):
-            pass
-
+        file = StringIO()
         stderr = StringIO()
-        initial_stderr = sys.stderr
+        stderr_origin = sys.stderr
 
-        with (
-            patch("sys.stderr", stderr),
-            patch("progressbar.streams.original_stderr", stderr),
-            wrap_stderr_progressbar(),
-        ):
-            wrapped_stderr = sys.stderr
+        assert stderr_origin is not stderr
 
-            # execute the progressbar with an exception
-            with StringIO() as file:
+        with redirect_stderr(stderr):
+            assert sys.stderr is stderr
+            assert sys.stderr is not stderr_origin
+
+            sys.stderr.write("error1")
+            assert "error1" in stderr.getvalue()
+
+            with progress_bar.wrap_stderr():
+                assert sys.stderr is not stderr
+                assert sys.stderr is not stderr_origin
+
+                # execute the progressbar without exception
                 try:
                     for _ in progress_bar.progress_bar(
                         range(1), fd=file, term_width=65
                     ):
-                        raise MyException("error")
+                        raise Exception("exception")
 
-                except MyException:
+                except Exception:
                     pass
 
-            sys.stderr.write("error")
-            after_stderr = sys.stderr
+                assert sys.stderr is not stderr
+                assert sys.stderr is not stderr_origin
 
-        final_stderr = sys.stderr
+                sys.stderr.write("error2")
+                assert "error2" not in stderr.getvalue()
 
-        # assert stderrs
-        self.assertIs(initial_stderr, final_stderr)
-        self.assertIs(wrapped_stderr, after_stderr)
-        self.assertIsNot(initial_stderr, wrapped_stderr)
-        self.assertIsNot(stderr, wrapped_stderr)
-        self.assertIsNot(stderr, initial_stderr)
-
-        # assert stderr value
-        value = stderr.getvalue()
-        self.assertEqual(value, "error")
+        assert sys.stderr is stderr_origin
+        assert stderr.getvalue() == "error1"
 
 
-@contextmanager
-def wrap_stderr_progressbar():
-    """Temporary wrap stderr with progressbar tools."""
-    try:
-        progressbar.streams.wrap_stderr()
-        yield None
-
-    finally:
-        progressbar.streams.unwrap_stderr()
-
-
-class NullBarTestCase(TestCase):
-    """Test the null progress bar."""
-
-    def setUp(self):
-        # create logger similar to the one of the tested module
-        self.logger = logging.getLogger("dakara_base.progress_bar")
-
-    def test_text(self):
+class TestNullBar:
+    def test_text(self, caplog):
         """Test a null bar with text."""
-        # call the bar
-        with self.assertLogs("dakara_base.progress_bar") as logger:
-            self.logger.info("start bar")
-            for _ in progress_bar.null_bar(range(1), text="some text here"):
-                pass
+        caplog.set_level(logging.INFO)
 
-            self.logger.info("end bar")
+        # call the bar
+        for _ in progress_bar.null_bar(range(1), text="some text here"):
+            pass
 
         # assert the logs
-        self.assertListEqual(
-            logger.output,
-            [
-                "INFO:dakara_base.progress_bar:start bar",
-                "INFO:dakara_base.progress_bar:some text here",
-                "INFO:dakara_base.progress_bar:end bar",
-            ],
-        )
+        assert caplog.record_tuples == [
+            ("dakara_base.progress_bar", logging.INFO, "some text here")
+        ]
 
-    def test_no_text(self):
+    def test_no_text(self, caplog):
         """Test a null bar without text."""
-        # call the bar
-        with self.assertLogs("dakara_base.progress_bar") as logger:
-            self.logger.info("start bar")
-            for _ in progress_bar.null_bar(range(1)):
-                pass
+        caplog.set_level(logging.INFO)
 
-            self.logger.info("end bar")
+        # call the bar
+        for _ in progress_bar.null_bar(range(1)):
+            pass
 
         # assert the logs
-        self.assertListEqual(
-            logger.output,
-            [
-                "INFO:dakara_base.progress_bar:start bar",
-                "INFO:dakara_base.progress_bar:end bar",
-            ],
-        )
+        assert caplog.record_tuples == []
