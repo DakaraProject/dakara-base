@@ -60,7 +60,6 @@ class TestProgressBar:
         assert get_lines(file) == [
             "some text here     0% |    | Elapsed Time: 0:00:00 ETA:  --:--:--",
             "some text here   100% |####| Elapsed Time: 0:00:00 Time:  0:00:00",
-            "some text here   100% |####| Elapsed Time: 0:00:00 Time:  0:00:00",
         ]
 
     def test_no_text(self):
@@ -73,7 +72,6 @@ class TestProgressBar:
         # assert the lines
         assert get_lines(file) == [
             "  0% |                     | Elapsed Time: 0:00:00 ETA:  --:--:--",
-            "100% |#####################| Elapsed Time: 0:00:00 Time:  0:00:00",
             "100% |#####################| Elapsed Time: 0:00:00 Time:  0:00:00",
         ]
 
