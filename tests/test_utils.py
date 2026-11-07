@@ -10,19 +10,28 @@ class TestTruncateMessage:
 
     def test_long_message_end(self):
         """Test a long message is cut at the end."""
-        text = "few characters"
-        assert truncate_message(text, limit=5) == "fe..."
-        assert truncate_message(text, limit=6) == "few..."
-        assert truncate_message(text, limit=7) == "few..."
+        text = "so few characters"
+        assert truncate_message(text, limit=5) == "so..."
+        assert truncate_message(text, limit=6) == "so..."
+        assert truncate_message(text, limit=7) == "so f..."
 
     def test_long_message_middle(self):
         """Test a long message is cut at the middle."""
-        text = "few characters"
-        assert truncate_message(text, limit=5, position="middle") == "f...s"
-        assert truncate_message(text, limit=6, position="middle") == "fe...s"
-        assert truncate_message(text, limit=7, position="middle") == "fe...rs"
-        assert truncate_message(text, limit=10, position="middle") == "few...ers"
-        assert truncate_message(text, limit=11, position="middle") == "few...ters"
+        text = "so few characters"
+        assert truncate_message(text, limit=5, position="middle") == "s...s"
+        assert truncate_message(text, limit=6, position="middle") == "so...s"
+        assert truncate_message(text, limit=7, position="middle") == "so...rs"
+        assert truncate_message(text, limit=9, position="middle") == "so...ers"
+        assert truncate_message(text, limit=10, position="middle") == "so f...ers"
+
+    def test_long_message_begin(self):
+        """Test a long message is cut at the begining."""
+        text = "so few characters"
+        assert truncate_message(text, limit=5, position="begin") == "...rs"
+        assert truncate_message(text, limit=6, position="begin") == "...ers"
+        assert truncate_message(text, limit=13, position="begin") == "...characters"
+        assert truncate_message(text, limit=14, position="begin") == "...characters"
+        assert truncate_message(text, limit=15, position="begin") == "...w characters"
 
     def test_too_short_limit(self):
         """Test a too short limit.

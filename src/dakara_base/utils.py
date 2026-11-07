@@ -42,7 +42,8 @@ def truncate_message(message: str, limit: int = 100, position: str = "end") -> s
         message: Message to truncate.
         limit: Maximum size of the message.
         position: Where to put the ellipsis. If "middle", the ellipsis are at
-            the middle of the message. Any other value defaults to ellipsis at
+            the middle of the message. If "begin", the ellipsis are at the
+            begining of the message. Any other value defaults to ellipsis at
             the end of the message.
 
     Returns:
@@ -54,8 +55,14 @@ def truncate_message(message: str, limit: int = 100, position: str = "end") -> s
     if len(message) <= limit:
         return message
 
+    if position == "begin":
+        return f"...{message[3 - limit:].strip()}"
+
     if position == "middle":
         limit_half = int((limit - 3) * 0.5)
+
+        # if the string contains an even number of characters, make the lower
+        # half 1 character larger
         correction = 0
         if limit_half * 2 < limit - 3:
             correction = 1
@@ -65,7 +72,7 @@ def truncate_message(message: str, limit: int = 100, position: str = "end") -> s
         return f"{lower}...{upper}"
 
     # default to end
-    return f"{message[: limit - 3].strip()}..."
+    return f"{message[:limit - 3].strip()}..."
 
 
 def create_url(
