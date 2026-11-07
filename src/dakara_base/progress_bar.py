@@ -28,10 +28,14 @@ The text is displayed as a log entry.
 """
 
 import logging
-from typing import Iterable
+from contextlib import contextmanager
+from typing import Iterable, Iterator
 
 import progressbar
-from progressbar.widgets import WidgetBase
+from progressbar.bar import ProgressBarMixinBase
+from progressbar.widgets import Data, WidgetBase
+
+from dakara_base.utils import truncate_message
 
 logger = logging.getLogger(__name__)
 
@@ -53,17 +57,12 @@ class ShrinkableTextWidget(WidgetBase):
         self.ratio: float = ratio
         """Ratio of screen width to use for text."""
 
-    def __call__(self, progress, data) -> str:
+    def __call__(self, progress: ProgressBarMixinBase, data: Data) -> str:
         # set widget width to a fraction of terminal width
         width = int(progress.term_width * self.ratio)
 
         # truncate text if necessary
-        text = self.text
-        if len(text) > width:
-            half = int(width * 0.5)
-            text = text[: half - 2].strip() + "..." + text[-half + 1 :].strip()
-
-        return text.ljust(width)
+        return truncate_message(self.text, width, position="middle").ljust(width)
 
 
 def progress_bar(
@@ -127,3 +126,14 @@ def null_bar(iterator: Iterable, *args, text: str | None = None, **kwargs) -> It
     with progressbar.NullBar(*args, **kwargs) as progress:
         for item in progress(iterator):
             yield item
+
+
+@contextmanager
+def wrap_stderr() -> Iterator[None]:
+    """Temporary wrap stderr with progressbar tools."""
+    try:
+        progressbar.streams.wrap_stderr()
+        yield None
+
+    finally:
+        progressbar.streams.unwrap_stderr()
