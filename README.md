@@ -23,6 +23,8 @@ This project is a collection of tools and helper modules for the Dakara Project.
 - `version_check`: a checker for the version of a project;
 - `websocket_client`: a Websocket client.
 
+Some modules are showcased in the `examples` directory.
+
 ## Install
 
 Install the package with:

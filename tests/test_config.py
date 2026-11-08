@@ -230,9 +230,6 @@ def test_create_logger_mockers(mocker):
     return (
         mocker.patch("dakara_base.config.LOG_FORMAT", "my format"),
         mocker.patch("dakara_base.config.LOG_LEVEL", "my level"),
-        mocker.patch(
-            "dakara_base.config.progressbar.streams.wrap_stderr", autospec=True
-        ),
         mocker.patch("dakara_base.config.coloredlogs.install", autospec=True),
     )
 
@@ -240,29 +237,17 @@ def test_create_logger_mockers(mocker):
 class TestCreateLogger:
     def test_normal(self, test_create_logger_mockers):
         """Test to call the method normally."""
-        _, _, mocked_wrap_stderr, mocked_install = test_create_logger_mockers
+        _, _, mocked_install = test_create_logger_mockers
 
         # call the method
         create_logger()
 
         # assert the call
         mocked_install.assert_called_with(fmt="my format", level="my level")
-        mocked_wrap_stderr.assert_not_called()
-
-    def test_wrap(self, test_create_logger_mockers):
-        """Test to call the method and request to wrap stderr."""
-        _, _, mocked_wrap_stderr, mocked_install = test_create_logger_mockers
-
-        # call the method
-        create_logger(wrap=True)
-
-        # assert the call
-        mocked_install.assert_called_with(fmt="my format", level="my level")
-        mocked_wrap_stderr.assert_called_with()
 
     def test_custom(self, test_create_logger_mockers):
         """Test to call the method with custom format and level."""
-        _, _, mocked_wrap_stderr, mocked_install = test_create_logger_mockers
+        _, _, mocked_install = test_create_logger_mockers
 
         # call the method
         create_logger(
@@ -273,7 +258,6 @@ class TestCreateLogger:
         mocked_install.assert_called_with(
             fmt="my custom format", level="my custom level"
         )
-        mocked_wrap_stderr.assert_not_called()
 
 
 class TestSetLogLevel:
