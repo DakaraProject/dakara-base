@@ -1,8 +1,8 @@
 import logging
 import sys
-from contextlib import redirect_stderr
 from io import StringIO
 
+import progressbar
 import pytest
 from progressbar.bar import ProgressBarMixinBase
 
@@ -75,77 +75,39 @@ class TestProgressBar:
             "100% |#####################| Elapsed Time: 0:00:00 Time:  0:00:00",
         ]
 
-    def test_stderr_on_no_exception(self):
-        """Test to check stderr is not captured if no exceptions occur."""
-        file = StringIO()
-        stderr = StringIO()
-        stderr_origin = sys.stderr
+    def test_stderr_on_no_exception(self, capsys, monkeypatch):
+        """Test to check stderr is not kept if no exceptions occur."""
+        # enforce progressbar wrapper to use test stderr
+        monkeypatch.setattr(progressbar.streams, "original_stderr", sys.stderr)
 
-        assert stderr_origin is not stderr
+        sys.stderr.write("error1")
+        assert "error1" == capsys.readouterr().err
 
-        with redirect_stderr(stderr):
-            assert sys.stderr is stderr
-            assert sys.stderr is not stderr_origin
+        # execute the progressbar without exception
+        for _ in progress_bar.progress_bar(range(1), term_width=65):
+            pass
 
-            sys.stderr.write("error1")
-            assert "error1" in stderr.getvalue()
+        sys.stderr.write("error3")
+        assert "error3" == capsys.readouterr().err
 
-            with progress_bar.wrap_stderr():
-                assert sys.stderr is not stderr
-                assert sys.stderr is not stderr_origin
+    def test_no_stderr_on_exception(self, capsys, monkeypatch):
+        """Test to check stderr is not kept after an exception."""
+        # enforce progressbar wrapper to use test stderr
+        monkeypatch.setattr(progressbar.streams, "original_stderr", sys.stderr)
 
-                # execute the progressbar without exception
-                for _ in progress_bar.progress_bar(range(1), fd=file, term_width=65):
-                    pass
+        sys.stderr.write("error1")
+        assert "error1" == capsys.readouterr().err
 
-                sys.stderr.write("error2")
-                assert "error2" not in stderr.getvalue()
+        # execute the progressbar without exception
+        try:
+            for _ in progress_bar.progress_bar(range(1), term_width=65):
+                raise Exception("exception")
 
-        assert sys.stderr is stderr_origin
-        assert stderr.getvalue() == "error1"
+        except Exception:
+            pass
 
-    def test_no_stderr_on_exception(self):
-        """Test to check stderr does not remain captured after an exception.
-
-        When leaving a progress bar by an exception, it does not call
-        `progressbar.streams.stop_capturing` and the stderr is allways
-        captured.
-        """
-        file = StringIO()
-        stderr = StringIO()
-        stderr_origin = sys.stderr
-
-        assert stderr_origin is not stderr
-
-        with redirect_stderr(stderr):
-            assert sys.stderr is stderr
-            assert sys.stderr is not stderr_origin
-
-            sys.stderr.write("error1")
-            assert "error1" in stderr.getvalue()
-
-            with progress_bar.wrap_stderr():
-                assert sys.stderr is not stderr
-                assert sys.stderr is not stderr_origin
-
-                # execute the progressbar without exception
-                try:
-                    for _ in progress_bar.progress_bar(
-                        range(1), fd=file, term_width=65
-                    ):
-                        raise Exception("exception")
-
-                except Exception:
-                    pass
-
-                assert sys.stderr is not stderr
-                assert sys.stderr is not stderr_origin
-
-                sys.stderr.write("error2")
-                assert "error2" not in stderr.getvalue()
-
-        assert sys.stderr is stderr_origin
-        assert stderr.getvalue() == "error1"
+        sys.stderr.write("error3")
+        assert "error3" == capsys.readouterr().err
 
 
 class TestNullBar:

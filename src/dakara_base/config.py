@@ -23,9 +23,6 @@ latter one:
 >>> config = Config("DAKARA")
 >>> set_loglevel(config)
 
-If you use progress bar and logging at the same time, you should call
-`create_logger` with `wrap=True`.
-
 The module has one function to manage Dakara Project config files,
 `create_config_file`, that copies a given config file stored in module resources to
 the configuration directory:
@@ -41,7 +38,6 @@ from shutil import copyfile
 from typing import Any, Type
 
 import coloredlogs
-import progressbar
 import yaml
 import yaml.parser
 from environs import Env, EnvError
@@ -277,23 +273,15 @@ class Config(UserDict):
 
 
 def create_logger(
-    wrap: bool = False,
     custom_log_format: str | None = None,
     custom_log_level: str | None = None,
 ) -> None:
     """Create logger.
 
     Args:
-        wrap: If True, wrap the standard error stream for using logging and
-            progress bar. You have to enable this flag if you use
-            `progress_bar`.
         custom_log_format: Custom format string to use for logs.
         custom_log_level: Custom level of logging.
     """
-    # wrap stderr on demand
-    if wrap:
-        progressbar.streams.wrap_stderr()
-
     # setup loggers
     log_format = custom_log_format or LOG_FORMAT
     log_level = custom_log_level or LOG_LEVEL
